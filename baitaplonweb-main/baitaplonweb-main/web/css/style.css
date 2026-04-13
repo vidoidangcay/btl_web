@@ -1,133 +1,448 @@
-/*
-Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
-Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/CascadeStyleSheet.css to edit this template
-*/
-/* 
-    Created on : 25 thg 3, 2026, 17:29:15
-    Author     : Admin
-*/
-/*bao toan bo*/
-#wrapper {
-    margin-left: 5%;
-    margin-right: 5%;
-    font-family: arial;
+/* =========== GLOBAL STYLE =========== */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-/*bo bam ca trai va phai*/
-.clr {
-    clear: both;
-}
-/*cho search by key*/
-.topnav {
-    background-color: #e9e9e9;
+html {
+    scroll-behavior: smooth;
 }
 
-.topnav input[type=text] {
-    margin-left: 200px;
-    font-size: 16px;
+body {
+    font-family: 'Inter', 'Segoe UI', 'Roboto', Arial, sans-serif;
+    min-height: 100vh;
+    background: radial-gradient(circle at top left, #fff6f6, #f3f2ff 30%, #eef4ff 100%);
+    color: #222;
 }
 
-
-ul.menu {
-    float: left;
-    background: url(../images/background_menu.jpg) repeat-x;
+img,
+svg {
+    max-width: 100%;
     display: block;
-    list-style-type: none;
-    font-weight: bold;
-    height: 54px;
-    padding: 12px;
-    width: 100%;
 }
 
-ul.menu li {
-    display: inline;
-    font-size: 14px;
-    padding-top: 15px;
-    text-align: center;
-    line-height: 30px;
-}
-ul.menu li a {
-    margin: 10px;
-    padding-left: 0px;
+a {
+    color: #d70018;
     text-decoration: none;
-    text-align: center;
-    color: #E2D9BC;
-    position: relative;
+    transition: color 0.25s ease, transform 0.25s ease;
 }
 
-ul.menu li a:hover {
-    color: #F90;
+a:hover {
+    color: #ff5a5a;
 }
 
-ul.menu li a.active {
-    color: #F90;
-}
-#tab1 {
-    width: 15%;
-    float: left;
-    background-color: #E2D9BC;
-}
-ul.tab {
-    list-style: none;
+button,
+.btn,
+input[type="submit"],
+input[type="button"],
+select,
+textarea {
+    cursor: pointer;
+    font-family: inherit;
 }
 
-ul.tab li {
-    display: block;
-    margin-top: 10px;
+.container {
+    width: min(1280px, calc(100% - 40px));
+    margin: 0 auto;
 }
 
-ul.tab li a {
-    text-decoration: none;
-    font-size: 16px;
+body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at top left, rgba(255, 112, 95, 0.12), transparent 32%),
+                radial-gradient(circle at bottom right, rgba(93, 68, 179, 0.12), transparent 28%);
+    pointer-events: none;
+    z-index: -1;
 }
-ul.tab li a:hover {
-    background-color: #F90;
+
+.page-title {
+    font-size: clamp(2rem, 2.4vw, 3rem);
+    letter-spacing: -0.04em;
+    margin-bottom: 12px;
+    color: #3f2f6c;
 }
-ul.tab li a.active {
-    background-color: #F90;
+
+.page-subtitle {
+    color: #5d5d7a;
+    margin-bottom: 24px;
+    line-height: 1.7;
+}
+
+.section-card,
+.card,
+.panel,
+.box,
+.modal-wrapper {
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 24px;
+    box-shadow: 0 24px 60px rgba(34, 34, 50, 0.08);
+}
+
+.section-card {
+    padding: 28px;
+    margin-bottom: 28px;
+}
+
+header,
+.page-header,
+.topbar,
+.navbar,
+.header {
+    background: linear-gradient(135deg, #d70018 0%, #ff6c76 100%);
+    color: white;
+    padding: 22px 0;
+    box-shadow: 0 18px 45px rgba(215, 0, 24, 0.18);
+}
+
+header .container,
+.page-header .container,
+.navbar .container,
+.header .container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+}
+
+.logo,
+.header .logo,
+.page-header .logo,
+.navbar .logo {
+    font-size: 1.9rem;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.header a,
+.page-header a,
+.navbar a,
+.logo a {
     color: white;
 }
-#tab2 {
-    width: 80%;
-    float: left;
+
+.hero-banner {
+    border-radius: 32px;
+    padding: 36px;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(254, 238, 242, 0.82));
+    backdrop-filter: blur(12px);
+    box-shadow: 0 24px 60px rgba(34, 34, 50, 0.08);
 }
 
-/*phần sản phẩm*/
-ul.item {
-    list-style: none;
-    float: left;
+.hero-banner h1 {
+    margin-bottom: 14px;
+    color: #3d2d6c;
+}
+
+.hero-banner p {
+    font-size: 1.05rem;
+    color: #5d5d82;
+    line-height: 1.7;
+    max-width: 680px;
+}
+
+.btn,
+.button,
+.action-link,
+.btn-primary,
+.btn-secondary,
+.btn-success,
+.btn-danger {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    border-radius: 14px;
+    border: none;
+    padding: 12px 18px;
+    font-weight: 700;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.btn-primary,
+.button,
+.btn,
+.window-action {
+    background: linear-gradient(135deg, #d70018 0%, #ff715f 100%);
+    color: white;
+}
+
+.btn-secondary {
+    background: white;
+    color: #3e305e;
+    border: 1px solid rgba(62, 48, 94, 0.12);
+}
+
+.btn-success {
+    background: #1caa82;
+    color: white;
+}
+
+.btn-danger {
+    background: #d70018;
+    color: white;
+}
+
+.btn:hover,
+.button:hover,
+.window-action:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 26px rgba(215, 0, 24, 0.2);
+}
+
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="tel"],
+select,
+textarea {
+    width: 100%;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid #e5e5ee;
+    background: #faf9ff;
+    color: #2b2b3f;
+    font-size: 1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    outline: none;
+    border-color: #d70018;
+    box-shadow: 0 0 0 6px rgba(215, 0, 24, 0.1);
+}
+
+.form-group {
+    margin-bottom: 18px;
+}
+
+.form-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #4f4f6f;
+    font-weight: 700;
+}
+
+.alert,
+.banner-note,
+.notification {
+    border-radius: 16px;
+    padding: 18px 22px;
+    margin: 20px 0;
+    background: #fff6f6;
+    color: #802020;
+    border: 1px solid rgba(215, 0, 24, 0.18);
+}
+
+.table,
+.product-table,
+.order-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 18px;
+}
+
+.table th,
+.table td,
+.product-table th,
+.product-table td,
+.order-table th,
+.order-table td {
+    border-bottom: 1px solid #ece8f1;
+    padding: 16px 14px;
+    text-align: left;
+}
+
+.table th,
+.product-table th,
+.order-table th {
+    background: linear-gradient(90deg, #f8eef5 0%, #fff5f5 100%);
+    color: #4a2f5d;
+    font-weight: 700;
+}
+
+.table tbody tr:hover,
+.product-table tbody tr:hover,
+.order-table tbody tr:hover {
+    background: rgba(255, 112, 95, 0.06);
+}
+
+.badge,
+.status-pill,
+.tag {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 7px 14px;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 700;
+}
+
+.badge-primary {
+    background: rgba(215, 0, 24, 0.15);
+    color: #d70018;
+}
+
+.badge-success {
+    background: rgba(28, 170, 130, 0.16);
+    color: #137448;
+}
+
+.badge-info {
+    background: rgba(62, 48, 94, 0.1);
+    color: #3e305e;
+}
+
+.badge-warning {
+    background: rgba(255, 160, 93, 0.16);
+    color: #c76718;
+}
+
+.product-grid {
+    display: grid;
+    gap: 24px;
+}
+
+.product-item,
+.product-card {
+    position: relative;
+    border-radius: 28px;
+    overflow: hidden;
+    background: linear-gradient(180deg, rgba(255,255,255,0.94), #ffffff 100%);
+    border: 1px solid rgba(224, 214, 239, 0.8);
+    box-shadow: 0 16px 40px rgba(62, 48, 94, 0.07);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.product-item:hover,
+.product-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 28px 55px rgba(62, 48, 94, 0.12);
+}
+
+.product-item img,
+.product-card img {
+    width: 100%;
+    height: 240px;
+    object-fit: contain;
+    background: #faf6ff;
+}
+
+.product-item .product-body,
+.product-card .product-body {
+    padding: 22px;
+}
+
+.product-item h3,
+.product-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 10px;
+    color: #2a1f4d;
+}
+
+.product-item .price,
+.product-card .price {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    color: #d70018;
+    font-weight: 800;
+    font-size: 1.2rem;
+}
+
+.product-item .btn-buy,
+.product-card .btn-buy {
+    margin-top: 18px;
     width: 100%;
 }
 
-ul.item li {
-    width: 25%;
-    height: 250px;
-    text-align: center;
-    float: left;
-    margin: 20px;
-    border: 2px solid chocolate;
-    border-radius: 20px;
+.product-item .badge,
+.product-card .badge {
+    position: absolute;
+    top: 18px;
+    right: 18px;
+    background: rgba(215, 0, 24, 0.1);
+    color: #d70018;
 }
 
-ul.item li img {
-    margin-top: 5px;
-    width: 90%;
-    height: 70%;
+.sort-toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
 }
 
-ul.item li a {
-    text-decoration: none;
-}
-ul.item li:hover {
-    background: bisque;
+.sort-toolbar label {
+    font-weight: 700;
+    color: #524c6b;
 }
 
-ul.item p {
-    margin: 5px;
-    color: blue;
-    font-size: 12px;
+.sort-toolbar select {
+    min-width: 210px;
+    padding: 12px 14px;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    background: white;
 }
-.old {
-    text-decoration: line-through;
-    color: red;
+
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 30px;
+}
+
+.page-link {
+    min-width: 46px;
+    padding: 12px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(67, 36, 73, 0.12);
+    background: white;
+    color: #4a2f5d;
+    transition: all 0.25s ease;
+}
+
+.page-link:hover {
+    background: rgba(255, 112, 95, 0.12);
+    color: #d70018;
+}
+
+.page-link.active {
+    background: #d70018;
+    color: white;
+    border-color: #d70018;
+}
+
+@media screen and (min-width: 1024px) {
+    .product-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+}
+
+@media screen and (max-width: 1024px) {
+    .product-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media screen and (max-width: 720px) {
+    .product-grid,
+    .grid {
+        grid-template-columns: 1fr;
+    }
+
+    .header .container,
+    .page-header .container,
+    .navbar .container,
+    .topbar .container {
+        flex-direction: column;
+        align-items: flex-start;
+    }
 }

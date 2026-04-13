@@ -1,111 +1,136 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/JSP_Servlet/Servlet.java to edit this template
- */
 package controller;
 
 import dal.DAO;
 import java.io.IOException;
-import java.io.PrintWriter;
+import java.util.*;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import java.util.List;
-import model.Category;
-import model.Product;
+import jakarta.servlet.http.*;
+import model.Products;
+import model.Accounts;
 
-/**
- *
- * @author Admin
- */
 @WebServlet(name = "HomeServlet", urlPatterns = {"/home"})
 public class HomeServlet extends HttpServlet {
 
-    /**
-     * Processes requests for both HTTP <code>GET</code> and <code>POST</code>
-     * methods.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    protected void processRequest(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        response.setContentType("text/html;charset=UTF-8");
-        try (PrintWriter out = response.getWriter()) {
-            /* TODO output your page here. You may use following sample code. */
-            out.println("<!DOCTYPE html>");
-            out.println("<html>");
-            out.println("<head>");
-            out.println("<title>Servlet HomeServlet</title>");
-            out.println("</head>");
-            out.println("<body>");
-            out.println("<h1>Servlet HomeServlet at " + request.getContextPath() + "</h1>");
-            out.println("</body>");
-            out.println("</html>");
-        }
-    }
-
-    // <editor-fold defaultstate="collapsed" desc="HttpServlet methods. Click on the + sign on the left to edit the code.">
-    /**
-     * Handles the HTTP <code>GET</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        DAO d = new DAO();
-        List<Category> list = d.getAll();
-        String[] pp = {"Dưới 1 triệu",
-            "Từ 1-3 triệu",
-            "Từ 3-5 triệu",
-            "Từ 5-10 triệu",
-            "Trên 10 triệu"};
-        boolean[] pb = new boolean[pp.length + 1];
-        pb[0] = true;
-        List<Product> news = d.getNewProducts();
-        List<Product> olds = d.getOldProducts();
-        boolean[] chid = new boolean[list.size() + 1];
-        chid[0] = true;
-        request.setAttribute("data", list);
-        request.setAttribute("news", news);
-        request.setAttribute("olds", olds);
-        request.setAttribute("pp", pp);
-        request.setAttribute("pb", pb);
-        request.setAttribute("cid", 0);
-        request.setAttribute("chid", chid);
-        request.getRequestDispatcher("list.jsp").forward(request, response);
+
+        DAO dao = new DAO();
+        HttpSession session = request.getSession();
+
+        // =========================
+        // 1. LẤY CID TỪ REQUEST
+        // =========================
+        String cid_raw = request.getParameter("cid");
+
+        Integer cidSession = (Integer) session.getAttribute("cid");
+
+        int cid;
+
+        if (cid_raw != null && !cid_raw.isEmpty()) {
+            try {
+                cid = Integer.parseInt(cid_raw);
+                session.setAttribute("cid", cid); // update session
+            } catch (NumberFormatException e) {
+                cid = (cidSession != null) ? cidSession : 0;
+            }
+        } else {
+            cid = (cidSession != null) ? cidSession : 0;
+        }
+
+        // =========================
+        // 2. GET PRODUCT LIST
+        // =========================
+        List<Products> list;
+
+        if (cid == 0) {
+            list = dao.getAllProducts();
+        } else {
+            list = dao.getProductsByCid(cid);
+        }
+
+        // =========================
+        // 3. WISHLIST
+        // =========================
+        Accounts acc = (Accounts) session.getAttribute("accounts");
+
+        Set<String> wishSet = new HashSet<>();
+
+        if (acc != null) {
+            List<String> wishList = dao.getWishlist(acc.getUsername());
+            if (wishList != null) {
+                wishSet = new HashSet<>(wishList);
+            }
+        }
+
+        // =========================
+        // 4. SORT OPTION
+        // =========================
+        String sortOption = request.getParameter("option");
+        if (sortOption == null) {
+            sortOption = "";
+        }
+
+        final Set<String> finalWishSet = wishSet;
+        final boolean priceDesc = "priceDesc".equals(sortOption);
+        final boolean priceAsc = "priceAsc".equals(sortOption);
+
+        list.sort((a, b) -> {
+            boolean wa = finalWishSet.contains(a.getId());
+            boolean wb = finalWishSet.contains(b.getId());
+
+            if (wa && !wb) return -1;
+            if (!wa && wb) return 1;
+
+            if (priceDesc) {
+                return Double.compare(b.getPrice(), a.getPrice());
+            }
+            if (priceAsc) {
+                return Double.compare(a.getPrice(), b.getPrice());
+            }
+
+            if (a.getPrice() > b.getPrice())
+                return -1;
+            else if (a.getPrice() < b.getPrice())
+                return 1;
+            return 0;
+        });
+
+        // =========================
+        // 5. PAGINATION 10 ITEMS / PAGE
+        // =========================
+        String pageParam = request.getParameter("page");
+        int currentPage = 1;
+        if (pageParam != null && !pageParam.isEmpty()) {
+            try {
+                currentPage = Math.max(1, Integer.parseInt(pageParam));
+            } catch (NumberFormatException ignored) {
+            }
+        }
+
+        int pageSize = 10;
+        int totalProducts = list.size();
+        int totalPages = totalProducts == 0 ? 1 : (int) Math.ceil((double) totalProducts / pageSize);
+        if (currentPage > totalPages) {
+            currentPage = totalPages;
+        }
+        int startIndex = (currentPage - 1) * pageSize;
+        int endIndex = Math.min(startIndex + pageSize, totalProducts);
+        List<Products> pageProducts = list.subList(startIndex, endIndex);
+
+        // =========================
+        // 6. SET ATTRIBUTE
+        // =========================
+        request.setAttribute("productList", pageProducts);
+        request.setAttribute("wishSet", wishSet);
+        request.setAttribute("categoryList", dao.getAllCategories());
+        request.setAttribute("currentCid", cid);
+        request.setAttribute("currentPage", currentPage);
+        request.setAttribute("totalPages", totalPages);
+        request.setAttribute("totalProducts", totalProducts);
+        request.setAttribute("sortOption", sortOption);
+
+        request.getRequestDispatcher("index1.jsp").forward(request, response);
     }
-
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        processRequest(request, response);
-    }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return "Short description";
-    }// </editor-fold>
-
 }

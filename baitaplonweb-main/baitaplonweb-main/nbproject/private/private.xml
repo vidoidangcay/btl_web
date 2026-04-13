@@ -3,14 +3,51 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group>
-            <file>file:/E:/D/ki2_nam3/web/btl/git4/baitaplonweb-main/baitaplonweb-main/web/index.html</file>
-            <file>file:/E:/D/ki2_nam3/web/btl/git4/baitaplonweb-main/baitaplonweb-main/src/java/controller/Home1Servlet.java</file>
-            <file>file:/E:/D/ki2_nam3/web/btl/git4/baitaplonweb-main/baitaplonweb-main/src/java/controller/HomeServlet.java</file>
-            <file>file:/E:/D/ki2_nam3/web/btl/git4/baitaplonweb-main/baitaplonweb-main/src/java/dal/DAO.java</file>
-            <file>file:/E:/D/ki2_nam3/web/btl/git4/baitaplonweb-main/baitaplonweb-main/src/java/dal/DBContext.java</file>
-            <file>file:/E:/D/ki2_nam3/web/btl/git4/baitaplonweb-main/baitaplonweb-main/src/java/model/Category.java</file>
-            <file>file:/E:/D/ki2_nam3/web/btl/git4/baitaplonweb-main/baitaplonweb-main/src/java/model/Product.java</file>
-            <file>file:/E:/D/ki2_nam3/web/btl/git4/baitaplonweb-main/baitaplonweb-main/web/list.jsp</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/HomeServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/index.jsp</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/META-INF/context.xml</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/css/style.css</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/LoginServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/dal/DAO.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/signup.jsp</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/AddAccountServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/LogoutServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/index1.jsp</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/Accounts.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/dal/DBContext.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/Products.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/Customers.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/Orders.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/OrderDetails.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/Cart.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/Suppliers.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/StockIn.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/StockInDetails.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/Vouchers.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/ProductGallery.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/Feedback.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/Wishlist.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/Categories.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/cart.jsp</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/detail.jsp</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/CartServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/DetailServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/images/opp4.jpg</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/images/search_icon.jpg</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/images/ss1.jpg</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/images/ss3.jpg</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/images/ss4.jpg</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/images/vsm1.jpg</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/images/vsm2.jpg</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/WishlistServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/profile.jsp</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/CheckoutServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/web/checkout.jsp</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/ProfileServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/PaymentServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller/ApplyVoucherServlet.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/model/UserVoucher.java</file>
+            <file>file:/E:/D/ki2_nam3/web/btl/my_btl%20-%20Copy/baitaplonweb-main/baitaplonweb-main/src/java/controller_admin/AdminServlet.java</file>
         </group>
     </open-files>
 </project-private>
