@@ -17,6 +17,7 @@ import model.Categories;
 import model.Orders;
 import model.Products;
 import model.StockIn;
+import model.StockInDetails;
 import model.Suppliers;
 import model.Vouchers;
 
@@ -107,8 +108,33 @@ public class AdminServlet extends HttpServlet {
             categoryMap.put(c.getId(), c.getName());
         }
 
+        Map<Integer, String> supplierMap = new HashMap<>();
+        for (Suppliers s : suppliers) {
+            supplierMap.put(s.getId(), s.getName());
+        }
+
+        Map<String, String> productMap = new HashMap<>();
+        for (Products p : products) {
+            productMap.put(p.getId(), p.getName());
+        }
+        for (Products p : filteredProducts) {
+            productMap.put(p.getId(), p.getName());
+        }
+
+        Map<Integer, StockInDetails> stockInDetailMap = new HashMap<>();
+        for (StockIn si : stockIns) {
+            StockInDetails detail = dao.getStockInDetailByStockId(si.getId());
+            if (detail != null) {
+                stockInDetailMap.put(si.getId(), detail);
+            }
+        }
+
         request.setAttribute("categories", categories);
+        request.setAttribute("supplierMap", supplierMap);
+        request.setAttribute("productMap", productMap);
+        request.setAttribute("stockInDetailMap", stockInDetailMap);
         request.setAttribute("products", pageProducts);
+        request.setAttribute("allProducts", products);
         request.setAttribute("totalProductCount", products.size());
         request.setAttribute("suppliers", suppliers);
         request.setAttribute("vouchers", vouchers);
@@ -139,20 +165,22 @@ public class AdminServlet extends HttpServlet {
 
         if (action != null) {
             switch (action) {
-                case "addCategory":
+                case "addCategory": {
                     String categoryName = request.getParameter("categoryName");
                     String categoryDescription = request.getParameter("categoryDescription");
                     if (categoryName != null && !categoryName.isEmpty()) {
                         dao.insertCategory(categoryName.trim(), categoryDescription);
                     }
                     break;
-                case "deleteCategory":
+                }
+                case "deleteCategory": {
                     String categoryId = request.getParameter("categoryId");
                     if (categoryId != null) {
                         dao.deleteCategory(Integer.parseInt(categoryId));
                     }
                     break;
-                case "addSupplier":
+                }
+                case "addSupplier": {
                     String supplierName = request.getParameter("supplierName");
                     String supplierPhone = request.getParameter("supplierPhone");
                     String supplierAddress = request.getParameter("supplierAddress");
@@ -160,13 +188,15 @@ public class AdminServlet extends HttpServlet {
                         dao.insertSupplier(new Suppliers(0, supplierName.trim(), supplierPhone, supplierAddress));
                     }
                     break;
-                case "deleteSupplier":
+                }
+                case "deleteSupplier": {
                     String supplierId = request.getParameter("supplierId");
                     if (supplierId != null) {
                         dao.deleteSupplier(Integer.parseInt(supplierId));
                     }
                     break;
-                case "addVoucher":
+                }
+                case "addVoucher": {
                     String code = request.getParameter("voucherCode");
                     String discountValue = request.getParameter("voucherDiscount");
                     String expirationDate = request.getParameter("voucherExpiration");
@@ -183,13 +213,15 @@ public class AdminServlet extends HttpServlet {
                         dao.insertVoucher(voucher);
                     }
                     break;
-                case "deleteVoucher":
+                }
+                case "deleteVoucher": {
                     String voucherCode = request.getParameter("voucherCode");
                     if (voucherCode != null) {
                         dao.deleteVoucher(voucherCode);
                     }
                     break;
-                case "addProduct":
+                }
+                case "addProduct": {
                     String productId = request.getParameter("productId");
                     String productName = request.getParameter("productName");
                     String productQty = request.getParameter("productQuantity");
@@ -211,21 +243,49 @@ public class AdminServlet extends HttpServlet {
                         dao.insertProduct(product);
                     }
                     break;
-                case "deleteProduct":
+                }
+                case "addStockIn": {
+                    String supplierId = request.getParameter("supplierId");
+                    String stockProductId = request.getParameter("stockProductId");
+                    String stockQuantity = request.getParameter("stockQuantity");
+                    String purchasePrice = request.getParameter("purchasePrice");
+                    if (supplierId != null && stockProductId != null && stockQuantity != null && purchasePrice != null
+                            && !supplierId.isEmpty() && !stockProductId.isEmpty()) {
+                        try {
+                            int sid = Integer.parseInt(supplierId);
+                            int quantity = Integer.parseInt(stockQuantity);
+                            double unitPrice = Double.parseDouble(purchasePrice);
+                            if (quantity > 0 && unitPrice >= 0) {
+                                double totalCost = quantity * unitPrice;
+                                Accounts adminAccount = (Accounts) session.getAttribute("accounts");
+                                StockIn stockIn = new StockIn(0, null, sid, adminAccount.getUsername(), totalCost);
+                                StockInDetails detail = new StockInDetails(0, stockProductId, quantity, unitPrice);
+                                dao.insertStockInWithDetail(stockIn, detail);
+                            }
+                        } catch (NumberFormatException ignored) {
+                            // Bỏ qua nếu dữ liệu không hợp lệ
+                        }
+                    }
+                    break;
+                }
+                case "deleteProduct": {
                     String deleteProductId = request.getParameter("productId");
                     if (deleteProductId != null) {
                         dao.deleteProduct(deleteProductId);
                     }
                     break;
-                case "updateOrderStatus":
+                }
+                case "updateOrderStatus": {
                     String orderId = request.getParameter("orderId");
                     String statusValue = request.getParameter("statusValue");
                     if (orderId != null && statusValue != null) {
                         dao.updateOrderStatus(Integer.parseInt(orderId), Integer.parseInt(statusValue));
                     }
                     break;
-                default:
+                }
+                default: {
                     break;
+                }
             }
         }
 

@@ -120,11 +120,17 @@ public class HomeServlet extends HttpServlet {
         List<Products> pageProducts = list.subList(startIndex, endIndex);
 
         // =========================
+        // 5. BEST SELLER PRODUCT
+        // =========================
+        Products highlightProduct = dao.getTopSellingProduct();
+
+        // =========================
         // 6. SET ATTRIBUTE
         // =========================
         request.setAttribute("productList", pageProducts);
         request.setAttribute("wishSet", wishSet);
         request.setAttribute("categoryList", dao.getAllCategories());
+        request.setAttribute("highlightProduct", highlightProduct);
         request.setAttribute("currentCid", cid);
         request.setAttribute("currentPage", currentPage);
         request.setAttribute("totalPages", totalPages);

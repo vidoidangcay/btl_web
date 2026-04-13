@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Accounts;
+import model.Customers;
 import model.OrderDetails;
 import model.Orders;
 import model.Products;
@@ -61,16 +62,27 @@ public class OrderServlet extends HttpServlet {
 
         List<OrderDetails> details = dao.getOrderDetailsByOrderId(orderId);
         Map<String, Products> productMap = new HashMap<>();
+        double originalTotal = 0;
         for (OrderDetails detail : details) {
             Products p = dao.getProductById(detail.getPid());
             if (p != null) {
                 productMap.put(detail.getPid(), p);
             }
+            originalTotal += detail.getPrice() * detail.getQuantity();
+        }
+
+        Customers customer = dao.getCustomerByUsername(order.getUsername());
+        double voucherDiscount = originalTotal - order.getTotalmoney();
+        if (voucherDiscount < 0) {
+            voucherDiscount = 0;
         }
 
         request.setAttribute("order", order);
         request.setAttribute("details", details);
         request.setAttribute("productMap", productMap);
+        request.setAttribute("customer", customer);
+        request.setAttribute("originalTotal", originalTotal);
+        request.setAttribute("voucherDiscount", voucherDiscount);
         request.setAttribute("isAdminView", isAdmin);
         request.getRequestDispatcher("orderDetails.jsp").forward(request, response);
     }

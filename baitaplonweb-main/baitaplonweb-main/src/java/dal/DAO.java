@@ -521,6 +521,102 @@ public Accounts login(String user, String pass) {
         return list;
     }
 
+    public StockInDetails getStockInDetailByStockId(int stockId) {
+        String sql = "SELECT * FROM StockInDetails WHERE stock_id = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, stockId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return new StockInDetails(
+                    rs.getInt("stock_id"),
+                    rs.getString("pid"),
+                    rs.getInt("quantity"),
+                    rs.getDouble("purchase_price")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getStockInDetailByStockId: " + e);
+        }
+        return null;
+    }
+
+    public Products getTopSellingProduct() {
+        String sql = "SELECT p.id, p.name, p.quantity, p.price, p.releaseDate, p.describe, p.image, p.cid "
+                   + "FROM Products p "
+                   + "JOIN OrderDetails od ON p.id = od.pid "
+                   + "GROUP BY p.id, p.name, p.quantity, p.price, p.releaseDate, p.describe, p.image, p.cid "
+                   + "ORDER BY SUM(od.quantity) DESC "
+                   + "OFFSET 0 ROWS FETCH NEXT 1 ROWS ONLY";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return new Products(
+                    rs.getString("id"),
+                    rs.getString("name"),
+                    rs.getInt("quantity"),
+                    rs.getDouble("price"),
+                    rs.getDate("releaseDate"),
+                    rs.getString("describe"),
+                    rs.getString("image"),
+                    rs.getInt("cid")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getTopSellingProduct: " + e);
+        }
+        return null;
+    }
+
+    public int insertStockInWithDetail(StockIn stockIn, StockInDetails detail) {
+        String sqlStock = "INSERT INTO StockIn (sid, admin_user, total_cost) VALUES (?, ?, ?)";
+        String sqlDetail = "INSERT INTO StockInDetails (stock_id, pid, quantity, purchase_price) VALUES (?, ?, ?, ?)";
+        String sqlUpdateProduct = "UPDATE Products SET quantity = quantity + ? WHERE id = ?";
+
+        try {
+            connection.setAutoCommit(false);
+
+            PreparedStatement psStock = connection.prepareStatement(sqlStock, Statement.RETURN_GENERATED_KEYS);
+            psStock.setInt(1, stockIn.getSid());
+            psStock.setString(2, stockIn.getAdmin_user());
+            psStock.setDouble(3, stockIn.getTotal_cost());
+            psStock.executeUpdate();
+
+            ResultSet rsStock = psStock.getGeneratedKeys();
+            if (!rsStock.next()) {
+                connection.rollback();
+                return -1;
+            }
+
+            int stockId = rsStock.getInt(1);
+            PreparedStatement psDetail = connection.prepareStatement(sqlDetail);
+            psDetail.setInt(1, stockId);
+            psDetail.setString(2, detail.getPid());
+            psDetail.setInt(3, detail.getQuantity());
+            psDetail.setDouble(4, detail.getPurchase_price());
+            psDetail.executeUpdate();
+
+            PreparedStatement psUpdateProduct = connection.prepareStatement(sqlUpdateProduct);
+            psUpdateProduct.setInt(1, detail.getQuantity());
+            psUpdateProduct.setString(2, detail.getPid());
+            int updated = psUpdateProduct.executeUpdate();
+            if (updated == 0) {
+                connection.rollback();
+                return -1;
+            }
+
+            connection.commit();
+            return stockId;
+        } catch (SQLException e) {
+            try { connection.rollback(); } catch (SQLException ex) {}
+            System.out.println("Error insertStockInWithDetail: " + e);
+            return -1;
+        } finally {
+            try { connection.setAutoCommit(true); } catch (SQLException ex) {}
+        }
+    }
+
     public void insertCategory(String name, String describe) {
         String sql = "INSERT INTO Categories (name, describe) VALUES (?, ?)";
         try {

@@ -14,7 +14,7 @@ import java.util.List;
 @WebServlet("/profile")
 public class ProfileServlet extends HttpServlet {
 
-    private void prepareProfilePage(HttpServletRequest request, HttpServletResponse response, String message)
+    private void prepareProfilePage(HttpServletRequest request, HttpServletResponse response, String message, String activeTab)
             throws ServletException, IOException {
         HttpSession session = request.getSession();
         Accounts acc = (Accounts) session.getAttribute("accounts");
@@ -35,6 +35,7 @@ public class ProfileServlet extends HttpServlet {
         if (message != null) {
             request.setAttribute("message", message);
         }
+        request.setAttribute("activeTab", activeTab != null ? activeTab : "tab-info");
 
         request.getRequestDispatcher("profile.jsp").forward(request, response);
     }
@@ -42,7 +43,7 @@ public class ProfileServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        prepareProfilePage(request, response, null);
+        prepareProfilePage(request, response, null, "tab-info");
     }
 
     @Override
@@ -69,7 +70,7 @@ public class ProfileServlet extends HttpServlet {
             c.setPhone(request.getParameter("phone"));
             c.setAddress(request.getParameter("address"));
             dao.updateCustomer(c);
-            prepareProfilePage(request, response, "Cập nhật thông tin thành công.");
+            prepareProfilePage(request, response, "Cập nhật thông tin thành công.", "tab-edit");
             return;
         }
 
@@ -79,22 +80,22 @@ public class ProfileServlet extends HttpServlet {
             String rePass = request.getParameter("rePass");
 
             if (oldPass == null || newPass == null || rePass == null || oldPass.isEmpty() || newPass.isEmpty() || rePass.isEmpty()) {
-                prepareProfilePage(request, response, "Vui lòng nhập đầy đủ thông tin đổi mật khẩu.");
+                prepareProfilePage(request, response, "Vui lòng nhập đầy đủ thông tin đổi mật khẩu.", "tab-password");
                 return;
             }
 
             if (!newPass.equals(rePass)) {
-                prepareProfilePage(request, response, "Mật khẩu mới không khớp.");
+                prepareProfilePage(request, response, "Mật khẩu mới không khớp.", "tab-password");
                 return;
             }
 
             if (dao.login(acc.getUsername(), oldPass) == null) {
-                prepareProfilePage(request, response, "Mật khẩu cũ không chính xác.");
+                prepareProfilePage(request, response, "Mật khẩu cũ không chính xác.", "tab-password");
                 return;
             }
 
             dao.updateAccount(acc.getUsername(), newPass);
-            prepareProfilePage(request, response, "Đổi mật khẩu thành công.");
+            prepareProfilePage(request, response, "Đổi mật khẩu thành công.", "tab-password");
             return;
         }
 
