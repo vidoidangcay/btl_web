@@ -421,7 +421,7 @@
                             <img src="${highlightProduct.image != null && !highlightProduct.image.isEmpty() ? highlightProduct.image : 'https://via.placeholder.com/800x400'}" alt="${highlightProduct.name}" />
                             <c:choose>
                                 <c:when test="${sessionScope.accounts != null}">
-                                    <a href="detail?pid=${highlightProduct.id}" class="btn-banner">Mua ngay</a>
+                                    <a href="detail?id=${highlightProduct.id}" class="btn-banner">Mua ngay</a>
                                 </c:when>
                                 <c:otherwise>
                                     <a href="login.jsp" class="btn-banner">Mua ngay</a>
