@@ -443,6 +443,10 @@ public class AdminServlet extends HttpServlet {
                     String address = request.getParameter("accountAddress");
                     if (username != null && !username.trim().isEmpty()) {
                         int role = "1".equals(roleValue) ? 1 : 0;
+                        Accounts currentAccount = (Accounts) session.getAttribute("accounts");
+                        boolean selfEdit = currentAccount != null && currentAccount.getUsername().equals(username.trim());
+                        int oldRole = selfEdit ? currentAccount.getRole() : -1;
+
                         dao.updateAccount(username.trim(), password, role);
                         Customers existingCustomer = dao.getCustomerByUsername(username.trim());
                         Customers customer = new Customers(username.trim(), fullname, email, phone, address, existingCustomer != null ? existingCustomer.getPoints() : 0);
@@ -451,6 +455,19 @@ public class AdminServlet extends HttpServlet {
                         } else if (role == 0) {
                             dao.insertCustomer(customer);
                         }
+
+                        if (selfEdit) {
+                            if (password != null && !password.trim().isEmpty()) {
+                                currentAccount.setPassword(password);
+                            }
+                            currentAccount.setRole(role);
+                            session.setAttribute("accounts", currentAccount);
+                            if (oldRole == 1 && role == 0) {
+                                response.sendRedirect(request.getContextPath() + "/home");
+                                return;
+                            }
+                        }
+
                         redirectEditUsername = username.trim();
                     }
                     break;

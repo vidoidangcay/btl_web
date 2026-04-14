@@ -34,13 +34,19 @@
         .small-btn { padding: 8px 12px; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; }
         .btn-delete { background: #f64e4e; color: white; }
         .btn-update { background: #0d4b87; color: white; }
-        .form-grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); }
+        .form-grid { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: start; }
+        .edit-account-top { display: grid; gap: 18px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); align-items: start; margin-bottom: 22px; }
+        .details-panel { display: grid; gap: 18px; grid-template-columns: repeat(2, minmax(240px, 1fr)); padding: 22px; background: #f8fbff; border: 1px solid #dbeafe; border-radius: 20px; }
         .field { display: flex; flex-direction: column; }
-        .field label { font-weight: 600; margin-bottom: 6px; font-size: 14px; }
-        .field input, .field textarea, .field select { padding: 10px 12px; border: 1px solid #d9d9d9; border-radius: 8px; font-size: 14px; }
-        .field textarea { resize: vertical; min-height: 90px; }
-        .form-card { padding: 20px; background: white; border-radius: 14px; box-shadow: 0 8px 20px rgba(0,0,0,.04); }
-        .btn-save { background: #0d4b87; color: white; border: none; padding: 12px 18px; border-radius: 10px; cursor: pointer; font-size: 14px; }
+        .field label { font-weight: 700; margin-bottom: 8px; font-size: 14px; color: #334155; }
+        .field input, .field textarea, .field select { padding: 12px 14px; border: 1px solid #cbd5e1; border-radius: 12px; font-size: 14px; background: #ffffff; transition: border-color .2s ease, box-shadow .2s ease; }
+        .field input:focus, .field textarea:focus, .field select:focus { outline: none; border-color: #0d4b87; box-shadow: 0 0 0 4px rgba(13,75,135,0.08); }
+        .field textarea { resize: vertical; min-height: 100px; }
+        .form-card { padding: 26px; background: #ffffff; border-radius: 20px; box-shadow: 0 14px 32px rgba(15, 23, 42, 0.08); }
+        .btn-save { background: #0d4b87; color: white; border: none; padding: 13px 22px; border-radius: 12px; cursor: pointer; font-size: 15px; font-weight: 700; }
+        .btn-save:hover { background: #0b3b6d; }
+        .form-actions { margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px; flex-wrap: wrap; }
+        .details-panel .field input, .details-panel .field textarea, .details-panel .field select { background: #ffffff; }
         .status-pill { display: inline-flex; align-items: center; padding: 6px 10px; border-radius: 999px; font-size: 12px; font-weight: bold; }
         .status-0 { background: #fff2cc; color: #a56f00; }
         .status-1 { background: #d9f7e4; color: #137333; }
@@ -468,23 +474,25 @@
                     <input type="hidden" name="view" value="${view}" />
                     <input type="hidden" name="action" value="editAccount" />
                     <input type="hidden" name="username" value="${editAccount.username}" />
-                    <div class="form-grid">
+                    <div class="edit-account-top">
                         <div class="field"><label>Username</label><input value="${editAccount.username}" readonly /></div>
                         <div class="field"><label>Mật khẩu mới</label><input type="password" name="accountPassword" placeholder="Để trống nếu không đổi" /></div>
                         <div class="field"><label>Vai trò</label>
-                            <select name="accountRole">
+                            <select id="editAccountRole" name="accountRole">
                                 <option value="0" <c:if test="${editAccount.role == 0}">selected</c:if>>Khách hàng</option>
                                 <option value="1" <c:if test="${editAccount.role == 1}">selected</c:if>>Admin</option>
                             </select>
                         </div>
+                    </div>
+                    <div id="editAccountDetailsFields" class="details-panel">
                         <div class="field"><label>Họ tên</label><input name="accountFullname" value="${editCustomer != null ? editCustomer.fullname : ''}" /></div>
                         <div class="field"><label>Email</label><input type="email" name="accountEmail" value="${editCustomer != null ? editCustomer.email : ''}" /></div>
                         <div class="field"><label>Điện thoại</label><input name="accountPhone" value="${editCustomer != null ? editCustomer.phone : ''}" /></div>
-                        <div class="field" style="grid-column: span 2;"><label>Địa chỉ</label><input name="accountAddress" value="${editCustomer != null ? editCustomer.address : ''}" /></div>
+                        <div class="field"><label>Địa chỉ</label><input name="accountAddress" value="${editCustomer != null ? editCustomer.address : ''}" /></div>
                     </div>
-                    <div style="margin-top: 14px; text-align: right;">
+                    <div class="form-actions">
+                        <a href="admin?view=accounts" class="small-btn btn-delete">Hủy</a>
                         <button class="btn-save" type="submit">Lưu thay đổi</button>
-                        <a href="admin?view=accounts" class="small-btn btn-delete" style="margin-left:12px;">Hủy</a>
                     </div>
                 </form>
             </div>
@@ -723,14 +731,17 @@
         });
     });
 
-    const accountRoleSelect = document.getElementById('accountRole');
-    const accountDetailsFields = document.getElementById('accountDetailsFields');
+    const accountRoleSelects = Array.from(document.querySelectorAll('#accountRole, #editAccountRole'));
+    const accountDetailsFieldsGroups = Array.from(document.querySelectorAll('#accountDetailsFields, #editAccountDetailsFields'));
 
-    function toggleAccountDetailsFields() {
-        if (!accountRoleSelect || !accountDetailsFields) return;
-        const isAdminRole = accountRoleSelect.value === '1';
-        accountDetailsFields.style.display = isAdminRole ? 'none' : 'grid';
-        accountDetailsFields.querySelectorAll('input').forEach(input => {
+    function toggleAccountDetailsFields(select) {
+        if (!select) return;
+        const isAdminRole = select.value === '1';
+        const groupId = select.id === 'editAccountRole' ? 'editAccountDetailsFields' : 'accountDetailsFields';
+        const fieldsGroup = document.getElementById(groupId);
+        if (!fieldsGroup) return;
+        fieldsGroup.style.display = isAdminRole ? 'none' : 'grid';
+        fieldsGroup.querySelectorAll('input').forEach(input => {
             if (isAdminRole) {
                 input.removeAttribute('required');
             } else {
@@ -739,9 +750,9 @@
         });
     }
 
-    if (accountRoleSelect) {
-        accountRoleSelect.addEventListener('change', toggleAccountDetailsFields);
-        toggleAccountDetailsFields();
-    }
+    accountRoleSelects.forEach(select => {
+        select.addEventListener('change', () => toggleAccountDetailsFields(select));
+        toggleAccountDetailsFields(select);
+    });
 </script>
 </html>
