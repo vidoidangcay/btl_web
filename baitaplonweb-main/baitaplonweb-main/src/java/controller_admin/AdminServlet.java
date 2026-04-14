@@ -13,7 +13,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.servlet.http.HttpSession;
 import model.Accounts;
+import model.Cart;
 import model.Categories;
+import model.Customers;
 import model.Orders;
 import model.Products;
 import model.StockIn;
@@ -39,7 +41,7 @@ public class AdminServlet extends HttpServlet {
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (!isAdmin(session)) {
-            response.sendRedirect("index1.jsp");
+            response.sendRedirect(request.getContextPath() + "/index1.jsp");
             return;
         }
 
@@ -50,6 +52,7 @@ public class AdminServlet extends HttpServlet {
         List<Vouchers> vouchers = dao.getAllVouchers();
         List<Orders> orders = dao.getAllOrders();
         List<StockIn> stockIns = dao.getAllStockIns();
+        List<Accounts> accounts = dao.getAllAccounts();
 
         int pendingOrderCount = 0;
         for (Orders o : orders) {
@@ -121,6 +124,54 @@ public class AdminServlet extends HttpServlet {
             productMap.put(p.getId(), p.getName());
         }
 
+        String editProductId = request.getParameter("editProductId");
+        Products editProduct = null;
+        if (editProductId != null && !editProductId.trim().isEmpty()) {
+            editProduct = dao.getProductById(editProductId.trim());
+        }
+
+        String detailUsername = request.getParameter("detailUsername");
+        Accounts detailAccount = null;
+        Customers detailCustomer = null;
+        List<Orders> detailOrders = null;
+        List<Cart> detailCart = null;
+        List<String> detailWishlist = null;
+        String deleteRequestRequester = null;
+        Accounts currentAccount = (Accounts) session.getAttribute("accounts");
+        boolean forceRespondDelete = false;
+        if (currentAccount != null && currentAccount.getRole() == 1 && dao.hasPendingAdminDeleteRequest(currentAccount.getUsername())) {
+            forceRespondDelete = true;
+            if (detailUsername == null || detailUsername.trim().isEmpty()) {
+                detailUsername = currentAccount.getUsername();
+            }
+            view = "accounts";
+            request.setAttribute("alert", "Bạn đang có yêu cầu xóa tài khoản cần phản hồi ngay.");
+        }
+        if (detailUsername != null && !detailUsername.trim().isEmpty()) {
+            detailAccount = dao.checkAccountExist(detailUsername.trim());
+            detailCustomer = dao.getCustomerByUsername(detailUsername.trim());
+            if (detailAccount != null && detailAccount.getRole() == 0) {
+                detailOrders = dao.getOrdersByUsername(detailUsername.trim());
+                detailCart = dao.getCartByUser(detailUsername.trim());
+                detailWishlist = dao.getWishlist(detailUsername.trim());
+            }
+            deleteRequestRequester = dao.getAdminDeleteRequester(detailUsername.trim());
+        }
+
+        String editUsername = request.getParameter("editUsername");
+        Accounts editAccount = null;
+        Customers editCustomer = null;
+        if (editUsername != null && !editUsername.trim().isEmpty()) {
+            editAccount = dao.checkAccountExist(editUsername.trim());
+            editCustomer = dao.getCustomerByUsername(editUsername.trim());
+        }
+
+        List<String> pendingDeleteTargets = dao.getPendingAdminDeleteTargets();
+        Map<String, Boolean> pendingDeleteMap = new HashMap<>();
+        for (String username : pendingDeleteTargets) {
+            pendingDeleteMap.put(username, true);
+        }
+
         Map<Integer, StockInDetails> stockInDetailMap = new HashMap<>();
         for (StockIn si : stockIns) {
             StockInDetails detail = dao.getStockInDetailByStockId(si.getId());
@@ -132,9 +183,20 @@ public class AdminServlet extends HttpServlet {
         request.setAttribute("categories", categories);
         request.setAttribute("supplierMap", supplierMap);
         request.setAttribute("productMap", productMap);
+        request.setAttribute("editProduct", editProduct);
+        request.setAttribute("detailAccount", detailAccount);
+        request.setAttribute("detailCustomer", detailCustomer);
+        request.setAttribute("detailOrders", detailOrders);
+        request.setAttribute("detailCart", detailCart);
+        request.setAttribute("detailWishlist", detailWishlist);
+        request.setAttribute("deleteRequestRequester", deleteRequestRequester);
+        request.setAttribute("editAccount", editAccount);
+        request.setAttribute("editCustomer", editCustomer);
+        request.setAttribute("pendingDeleteMap", pendingDeleteMap);
         request.setAttribute("stockInDetailMap", stockInDetailMap);
         request.setAttribute("products", pageProducts);
         request.setAttribute("allProducts", products);
+        request.setAttribute("accounts", accounts);
         request.setAttribute("totalProductCount", products.size());
         request.setAttribute("suppliers", suppliers);
         request.setAttribute("vouchers", vouchers);
@@ -147,7 +209,7 @@ public class AdminServlet extends HttpServlet {
         request.setAttribute("totalProductPages", totalProductPages);
         request.setAttribute("view", view);
 
-        request.getRequestDispatcher("admin.jsp").forward(request, response);
+        request.getRequestDispatcher("/admin.jsp").forward(request, response);
     }
 
     @Override
@@ -162,6 +224,9 @@ public class AdminServlet extends HttpServlet {
 
         String action = request.getParameter("action");
         DAO dao = new DAO();
+        String redirectDetailUsername = null;
+        String redirectEditUsername = null;
+        String redirectAlert = null;
 
         if (action != null) {
             switch (action) {
@@ -244,6 +309,29 @@ public class AdminServlet extends HttpServlet {
                     }
                     break;
                 }
+                case "editProduct": {
+                    String productId = request.getParameter("productId");
+                    String productName = request.getParameter("productName");
+                    String productQty = request.getParameter("productQuantity");
+                    String productPrice = request.getParameter("productPrice");
+                    String productRelease = request.getParameter("productRelease");
+                    String productDesc = request.getParameter("productDescription");
+                    String productImage = request.getParameter("productImage");
+                    String productCid = request.getParameter("productCategoryId");
+                    if (productId != null && !productId.isEmpty()) {
+                        Products product = new Products();
+                        product.setId(productId.trim());
+                        product.setName(productName);
+                        product.setQuantity(Integer.parseInt(productQty));
+                        product.setPrice(Double.parseDouble(productPrice));
+                        product.setReleaseDate(Date.valueOf(productRelease));
+                        product.setDescribe(productDesc);
+                        product.setImage(productImage);
+                        product.setCid(Integer.parseInt(productCid));
+                        dao.updateProduct(product);
+                    }
+                    break;
+                }
                 case "addStockIn": {
                     String supplierId = request.getParameter("supplierId");
                     String stockProductId = request.getParameter("stockProductId");
@@ -275,6 +363,98 @@ public class AdminServlet extends HttpServlet {
                     }
                     break;
                 }
+                case "deleteAccount": {
+                    String username = request.getParameter("username");
+                    if (username != null && !username.trim().isEmpty()) {
+                        String trimmedUsername = username.trim();
+                        Accounts targetAccount = dao.checkAccountExist(trimmedUsername);
+                        Accounts currentAccount = (Accounts) session.getAttribute("accounts");
+                        if (targetAccount != null && targetAccount.getRole() == 1) {
+                            if (trimmedUsername.equals(currentAccount.getUsername())) {
+                                redirectAlert = "Bạn không thể xóa chính mình.";
+                            } else if (dao.hasPendingAdminDeleteRequest(trimmedUsername)) {
+                                redirectAlert = "Đã có yêu cầu xóa đang chờ phản hồi.";
+                            } else if (dao.hasOrdersInStatus(trimmedUsername, 2)) {
+                                redirectAlert = "Tài khoản đang có đơn hàng đang giao, không thể xóa.";
+                            } else {
+                                dao.createAdminDeleteRequest(trimmedUsername, currentAccount.getUsername());
+                                redirectAlert = "Đã gửi yêu cầu xóa. Đợi phản hồi từ admin đó.";
+                            }
+                        } else {
+                            boolean hasConfirmedOrders = dao.hasOrdersInStatus(trimmedUsername, 1);
+                            boolean hasDeliveringOrders = dao.hasOrdersInStatus(trimmedUsername, 2);
+                            if (hasDeliveringOrders) {
+                                redirectAlert = "Tài khoản đang có đơn hàng đang giao, không thể xóa.";
+                            } else {
+                                // Nếu tài khoản có đơn đã xác nhận, vẫn xóa bình thường.
+                                // Nếu tài khoản không có đơn đã xác nhận, vẫn xóa tất cả dữ liệu liên quan.
+                                dao.deleteAccount(trimmedUsername);
+                                redirectAlert = "Tài khoản đã được xóa.";
+                            }
+                        }
+                    }
+                    break;
+                }
+                case "respondDeleteAdmin": {
+                    String targetUsername = request.getParameter("targetUsername");
+                    String responseValue = request.getParameter("response");
+                    if (targetUsername != null && !targetUsername.trim().isEmpty() && responseValue != null) {
+                        String trimmedTarget = targetUsername.trim();
+                        Accounts currentAccount = (Accounts) session.getAttribute("accounts");
+                        if (trimmedTarget.equals(currentAccount.getUsername()) && dao.hasPendingAdminDeleteRequest(trimmedTarget)) {
+                            if ("accept".equals(responseValue)) {
+                                dao.deleteAccount(trimmedTarget);
+                                dao.removeAdminDeleteRequest(trimmedTarget);
+                                session.invalidate();
+                                response.sendRedirect(request.getContextPath() + "/login.jsp");
+                                return;
+                            } else {
+                                dao.removeAdminDeleteRequest(trimmedTarget);
+                                redirectAlert = "Yêu cầu xóa đã bị từ chối.";
+                            }
+                        }
+                    }
+                    break;
+                }
+                case "addAccount": {
+                    String username = request.getParameter("accountUsername");
+                    String password = request.getParameter("accountPassword");
+                    String roleValue = request.getParameter("accountRole");
+                    String fullname = request.getParameter("accountFullname");
+                    String email = request.getParameter("accountEmail");
+                    String phone = request.getParameter("accountPhone");
+                    String address = request.getParameter("accountAddress");
+                    if (username != null && !username.trim().isEmpty() && password != null && !password.trim().isEmpty()) {
+                        int role = "1".equals(roleValue) ? 1 : 0;
+                        if (dao.checkAccountExist(username.trim()) == null) {
+                            dao.insertAccount(username.trim(), password.trim(), role, fullname, email, phone, address);
+                            redirectDetailUsername = username.trim();
+                        }
+                    }
+                    break;
+                }
+                case "editAccount": {
+                    String username = request.getParameter("username");
+                    String password = request.getParameter("accountPassword");
+                    String roleValue = request.getParameter("accountRole");
+                    String fullname = request.getParameter("accountFullname");
+                    String email = request.getParameter("accountEmail");
+                    String phone = request.getParameter("accountPhone");
+                    String address = request.getParameter("accountAddress");
+                    if (username != null && !username.trim().isEmpty()) {
+                        int role = "1".equals(roleValue) ? 1 : 0;
+                        dao.updateAccount(username.trim(), password, role);
+                        Customers existingCustomer = dao.getCustomerByUsername(username.trim());
+                        Customers customer = new Customers(username.trim(), fullname, email, phone, address, existingCustomer != null ? existingCustomer.getPoints() : 0);
+                        if (existingCustomer != null) {
+                            dao.updateCustomer(customer);
+                        } else if (role == 0) {
+                            dao.insertCustomer(customer);
+                        }
+                        redirectEditUsername = username.trim();
+                    }
+                    break;
+                }
                 case "updateOrderStatus": {
                     String orderId = request.getParameter("orderId");
                     String statusValue = request.getParameter("statusValue");
@@ -293,7 +473,7 @@ public class AdminServlet extends HttpServlet {
         String productCategoryFilter = request.getParameter("productCategory");
         String page = request.getParameter("page");
 
-        String redirectUrl = "admin";
+        String redirectUrl = request.getContextPath() + "/admin";
         if (view != null && !view.trim().isEmpty()) {
             redirectUrl += "?view=" + URLEncoder.encode(view, StandardCharsets.UTF_8);
             if ("products".equals(view)) {
@@ -304,6 +484,26 @@ public class AdminServlet extends HttpServlet {
                     redirectUrl += "&page=" + URLEncoder.encode(page, StandardCharsets.UTF_8);
                 }
             }
+            if (redirectEditUsername != null) {
+                redirectUrl += "&editUsername=" + URLEncoder.encode(redirectEditUsername, StandardCharsets.UTF_8);
+            } else if (redirectDetailUsername != null) {
+                redirectUrl += "&detailUsername=" + URLEncoder.encode(redirectDetailUsername, StandardCharsets.UTF_8);
+            }
+            if (redirectAlert != null) {
+                redirectUrl += "&alert=" + URLEncoder.encode(redirectAlert, StandardCharsets.UTF_8);
+            }
+        } else if (redirectEditUsername != null) {
+            redirectUrl += "?editUsername=" + URLEncoder.encode(redirectEditUsername, StandardCharsets.UTF_8);
+            if (redirectAlert != null) {
+                redirectUrl += "&alert=" + URLEncoder.encode(redirectAlert, StandardCharsets.UTF_8);
+            }
+        } else if (redirectDetailUsername != null) {
+            redirectUrl += "?detailUsername=" + URLEncoder.encode(redirectDetailUsername, StandardCharsets.UTF_8);
+            if (redirectAlert != null) {
+                redirectUrl += "&alert=" + URLEncoder.encode(redirectAlert, StandardCharsets.UTF_8);
+            }
+        } else if (redirectAlert != null) {
+            redirectUrl += "?alert=" + URLEncoder.encode(redirectAlert, StandardCharsets.UTF_8);
         }
 
         response.sendRedirect(redirectUrl);

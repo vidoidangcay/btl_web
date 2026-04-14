@@ -82,6 +82,11 @@ public class PaymentServlet extends HttpServlet {
         order.setUsername(username);
         order.setTotalmoney(totalMoney);
         order.setStatus(0);
+        order.setPaymentMethod("qr");
+        String paymentMethod = request.getParameter("paymentMethod");
+        if (paymentMethod != null && !paymentMethod.isEmpty()) {
+            order.setPaymentMethod(paymentMethod);
+        }
 
         order.setReceiver_name(request.getParameter("name"));
         order.setReceiver_phone(request.getParameter("phone"));

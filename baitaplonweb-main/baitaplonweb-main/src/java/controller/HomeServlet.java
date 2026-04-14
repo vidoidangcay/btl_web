@@ -55,12 +55,16 @@ public class HomeServlet extends HttpServlet {
         // =========================
         Accounts acc = (Accounts) session.getAttribute("accounts");
 
-        Set<String> wishSet = new HashSet<>();
+        Map<String, Object> wishMap = new HashMap<>();
 
         if (acc != null) {
             List<String> wishList = dao.getWishlist(acc.getUsername());
             if (wishList != null) {
-                wishSet = new HashSet<>(wishList);
+                for (String pid : wishList) {
+                    if (pid != null) {
+                        wishMap.put(pid, Boolean.TRUE);
+                    }
+                }
             }
         }
 
@@ -72,13 +76,13 @@ public class HomeServlet extends HttpServlet {
             sortOption = "";
         }
 
-        final Set<String> finalWishSet = wishSet;
+        final Map<String, Object> finalWishMap = wishMap;
         final boolean priceDesc = "priceDesc".equals(sortOption);
         final boolean priceAsc = "priceAsc".equals(sortOption);
 
         list.sort((a, b) -> {
-            boolean wa = finalWishSet.contains(a.getId());
-            boolean wb = finalWishSet.contains(b.getId());
+            boolean wa = finalWishMap.containsKey(a.getId());
+            boolean wb = finalWishMap.containsKey(b.getId());
 
             if (wa && !wb) return -1;
             if (!wa && wb) return 1;
@@ -128,7 +132,7 @@ public class HomeServlet extends HttpServlet {
         // 6. SET ATTRIBUTE
         // =========================
         request.setAttribute("productList", pageProducts);
-        request.setAttribute("wishSet", wishSet);
+        request.setAttribute("wishMap", wishMap);
         request.setAttribute("categoryList", dao.getAllCategories());
         request.setAttribute("highlightProduct", highlightProduct);
         request.setAttribute("currentCid", cid);

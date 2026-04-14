@@ -1,25 +1,26 @@
-﻿USE Trading2022;
+﻿
+USE Trading2022;
 GO
 
--- BƯỚC 1: Xóa các bảng "CON" (Bảng chứa khóa ngoại trỏ đi nơi khác)
--- Phải xóa những bảng này trước để gỡ bỏ các "dây xích"
-IF OBJECT_ID('dbo.OrderDetails', 'U') IS NOT NULL DROP TABLE dbo.OrderDetails;
-IF OBJECT_ID('dbo.StockInDetails', 'U') IS NOT NULL DROP TABLE dbo.StockInDetails;
-IF OBJECT_ID('dbo.Feedback', 'U') IS NOT NULL DROP TABLE dbo.Feedback;
+-- BƯỚC 1: Xóa các bảng phụ thuộc nhất trước
+IF OBJECT_ID('dbo.UserVoucher', 'U') IS NOT NULL DROP TABLE dbo.UserVoucher;
 IF OBJECT_ID('dbo.Wishlist', 'U') IS NOT NULL DROP TABLE dbo.Wishlist;
 IF OBJECT_ID('dbo.Cart', 'U') IS NOT NULL DROP TABLE dbo.Cart;
+IF OBJECT_ID('dbo.Feedback', 'U') IS NOT NULL DROP TABLE dbo.Feedback;
+IF OBJECT_ID('dbo.OrderDetails', 'U') IS NOT NULL DROP TABLE dbo.OrderDetails;
+IF OBJECT_ID('dbo.OrderShipment', 'U') IS NOT NULL DROP TABLE dbo.OrderShipment;
+IF OBJECT_ID('dbo.StockInDetails', 'U') IS NOT NULL DROP TABLE dbo.StockInDetails;
+IF OBJECT_ID('dbo.AdminDeleteRequest', 'U') IS NOT NULL DROP TABLE dbo.AdminDeleteRequest;
 IF OBJECT_ID('dbo.ProductGallery', 'U') IS NOT NULL DROP TABLE dbo.ProductGallery;
-IF OBJECT_ID('dbo.UserVoucher', 'U') IS NOT NULL DROP TABLE dbo.UserVoucher;
 GO
 
--- BƯỚC 2: Xóa các bảng "TRUNG GIAN" 
--- (Các bảng vừa là cha của bảng trên, vừa là con của bảng dưới)
+-- BƯỚC 2: Xóa các bảng trung gian
 IF OBJECT_ID('dbo.Orders', 'U') IS NOT NULL DROP TABLE dbo.Orders;
 IF OBJECT_ID('dbo.StockIn', 'U') IS NOT NULL DROP TABLE dbo.StockIn;
 IF OBJECT_ID('dbo.Customers', 'U') IS NOT NULL DROP TABLE dbo.Customers;
 GO
 
--- BƯỚC 3: Xóa các bảng "CHA" cuối cùng (Bảng gốc)
+-- BƯỚC 3: Xóa các bảng gốc
 IF OBJECT_ID('dbo.Products', 'U') IS NOT NULL DROP TABLE dbo.Products;
 IF OBJECT_ID('dbo.Categories', 'U') IS NOT NULL DROP TABLE dbo.Categories;
 IF OBJECT_ID('dbo.Suppliers', 'U') IS NOT NULL DROP TABLE dbo.Suppliers;
@@ -27,13 +28,16 @@ IF OBJECT_ID('dbo.Vouchers', 'U') IS NOT NULL DROP TABLE dbo.Vouchers;
 IF OBJECT_ID('dbo.Accounts', 'U') IS NOT NULL DROP TABLE dbo.Accounts;
 GO
 
+-------------------------------------------------------------------------
+-- BƯỚC 4: Tạo lại bảng
+-------------------------------------------------------------------------
 
 CREATE TABLE Categories (
     id INT PRIMARY KEY IDENTITY(1,1),
     name NVARCHAR(100) NOT NULL,
     describe NVARCHAR(255)
 );
-go
+GO
 
 CREATE TABLE Products (
     id VARCHAR(10) PRIMARY KEY,
@@ -47,17 +51,18 @@ CREATE TABLE Products (
     CONSTRAINT FK_Product_Category FOREIGN KEY (cid) REFERENCES Categories(id)
 );
 
-CREATE TABLE ProductGallery (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    pid VARCHAR(10),
-    imageUrl NVARCHAR(255),
-    CONSTRAINT FK_Gallery_Product FOREIGN KEY (pid) REFERENCES Products(id) ON DELETE CASCADE
-);
-
 CREATE TABLE Accounts (
     username VARCHAR(50) PRIMARY KEY,
     password VARCHAR(255) NOT NULL,
     role INT NOT NULL
+);
+
+CREATE TABLE AdminDeleteRequest (
+    target_admin VARCHAR(50) PRIMARY KEY,
+    requester_admin VARCHAR(50) NOT NULL,
+    requestedAt DATETIME DEFAULT GETDATE(),
+    CONSTRAINT FK_AdminDeleteRequest_Target FOREIGN KEY (target_admin) REFERENCES Accounts(username) ON DELETE CASCADE,
+    CONSTRAINT FK_AdminDeleteRequest_Requester FOREIGN KEY (requester_admin) REFERENCES Accounts(username)
 );
 
 CREATE TABLE Customers (
@@ -128,6 +133,7 @@ CREATE TABLE Orders (
     receiver_phone VARCHAR(15),
     shipping_address NVARCHAR(255),
     voucher_code VARCHAR(20),
+    payment_method VARCHAR(30) DEFAULT 'qr',
 
     CONSTRAINT FK_Orders_Customers 
         FOREIGN KEY (username) REFERENCES Customers(username),
@@ -136,6 +142,10 @@ CREATE TABLE Orders (
         FOREIGN KEY (voucher_code) REFERENCES Vouchers(code)
 );
 
+IF COL_LENGTH('dbo.Orders','payment_method') IS NULL
+BEGIN
+    ALTER TABLE Orders ADD payment_method VARCHAR(30) DEFAULT 'qr';
+END
 
 CREATE TABLE OrderDetails (
     oid INT, 
@@ -166,16 +176,14 @@ CREATE TABLE OrderShipment (
 
 CREATE TABLE Feedback (
     id INT PRIMARY KEY IDENTITY(1,1),
+    order_id INT,
     username VARCHAR(50),
-    pid VARCHAR(10),
-    rating INT CHECK (rating BETWEEN 1 AND 5),
-    comment NVARCHAR(500),
-    date DATE,
-    CONSTRAINT FK_FB_Customer FOREIGN KEY (username) REFERENCES Customers(username),
-    CONSTRAINT FK_FB_Product FOREIGN KEY (pid) REFERENCES Products(id) ON DELETE CASCADE,
-	CONSTRAINT UQ_Feedback UNIQUE (username, pid)
+    comment NVARCHAR(MAX),
+    createdDate DATETIME DEFAULT GETDATE(),
+    CONSTRAINT FK_Feedback_Order FOREIGN KEY (order_id) REFERENCES Orders(id) ON DELETE CASCADE,
+    CONSTRAINT FK_Feedback_Account FOREIGN KEY (username) REFERENCES Accounts(username)
 );
-GO
+
 CREATE TABLE Cart (
     id INT PRIMARY KEY IDENTITY(1,1),
     username VARCHAR(50), 
@@ -256,9 +264,7 @@ VALUES
 (1, 'ip1', 1, 19000);
 
 -- 6. Các thông tin bổ trợ khác
-INSERT INTO Feedback (username, pid, rating, comment, date) VALUES ('user1', 'ip1', 5, N'Hàng rất đẹp!', GETDATE());
 INSERT INTO Wishlist (username, pid) VALUES ('user2', 'ss1');
-INSERT INTO ProductGallery (pid, imageUrl) VALUES ('ip1', 'img/ip1_back.jpg');
 
 -- 7. Giỏ hàng
 INSERT INTO Cart (username, pid, quantity) VALUES 
@@ -274,4 +280,3 @@ SELECT * FROM Customers;
 SELECT * FROM Orders;
 SELECT * FROM OrderDetails;
 SELECT * FROM StockIn;
-SELECT * FROM Feedback;

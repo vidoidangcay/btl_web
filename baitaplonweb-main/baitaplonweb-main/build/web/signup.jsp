@@ -55,6 +55,7 @@
         </style>
     </head>
     <body>
+        <jsp:include page="header.jsp" />
         <div class="signup-box">
             <h2 style="color: #d70018; margin-bottom: 5px;">ĐĂNG KÝ SMEMBER</h2>
             <p style="font-size: 13px; color: #666; margin-bottom: 20px;">Tham gia hệ thống bán lẻ điện thoại Baophone</p>

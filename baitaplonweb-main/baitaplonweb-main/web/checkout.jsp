@@ -14,19 +14,7 @@ body {
 }
 
 /* HEADER */
-.header {
-    background: #d70018;
-    color: white;
-    padding: 15px 30px;
-    font-weight: bold;
-    display: flex;
-    justify-content: space-between;
-}
-
-.header a {
-    color: white;
-    text-decoration: none;
-}
+/* Shared header styles are now in css/style.css */
 
 /* BOX */
 .box {
@@ -183,10 +171,7 @@ textarea {
 
 <body>
 
-<div class="header">
-    <a href="home">MY CELL PHONE</a>
-    <div>Thanh toán</div>
-</div>
+<jsp:include page="header.jsp" />
 
 <div class="box">
 
@@ -200,25 +185,49 @@ textarea {
 
     <c:choose>
         <c:when test="${showQR == true}">
-            <div class="qr-box">
-                <img 
-                src="https://img.vietqr.io/image/BIDV-8820036081-compact2.png?amount=${totalMoney}&addInfo=ThanhToan_${sessionScope.accounts.username}"
-                />
-            </div>
-            <div class="note">
-                Quét mã QR bằng app ngân hàng để thanh toán<br>
-                Nội dung chuyển khoản đã được tự động điền
-            </div>
+            <c:choose>
+                <c:when test="${paymentMethod == 'cod'}">
+                    <div class="qr-box" style="background:#fff7f3; border-color:#f5d6cc;">
+                        <h3 style="margin-top:0; color:#d70018;">Thanh toán khi nhận hàng</h3>
+                        <p>Đơn hàng của bạn sẽ được giao đến địa chỉ đã cung cấp. Nhân viên giao nhận sẽ thu tiền mặt khi giao hàng.</p>
+                    </div>
+                    <div class="note">
+                        Vui lòng chuẩn bị tiền đúng hoặc gần đúng để nhân viên giao hàng không phải lúng túng.
+                    </div>
+                    <form action="payment" method="post">
+                        <input type="hidden" name="action" value="done"/>
+                        <input type="hidden" name="name" value="${paymentName}"/>
+                        <input type="hidden" name="phone" value="${paymentPhone}"/>
+                        <input type="hidden" name="address" value="${paymentAddress}"/>
+                        <input type="hidden" name="paymentMethod" value="cod"/>
+                        <button type="submit" class="btn btn-success">
+                            ✔ Xác nhận đặt hàng COD
+                        </button>
+                    </form>
+                </c:when>
+                <c:otherwise>
+                    <div class="qr-box">
+                        <img 
+                        src="https://img.vietqr.io/image/BIDV-8820036081-compact2.png?amount=${totalMoney}&addInfo=ThanhToan_${sessionScope.accounts.username}"
+                        />
+                    </div>
+                    <div class="note">
+                        Quét mã QR bằng app ngân hàng để thanh toán<br>
+                        Nội dung chuyển khoản đã được tự động điền
+                    </div>
 
-            <form action="payment" method="post">
-                <input type="hidden" name="action" value="done"/>
-                <input type="hidden" name="name" value="${paymentName}"/>
-                <input type="hidden" name="phone" value="${paymentPhone}"/>
-                <input type="hidden" name="address" value="${paymentAddress}"/>
-                <button type="submit" class="btn btn-success">
-                    ✔ Tôi đã thanh toán
-                </button>
-            </form>
+                    <form action="payment" method="post">
+                        <input type="hidden" name="action" value="done"/>
+                        <input type="hidden" name="name" value="${paymentName}"/>
+                        <input type="hidden" name="phone" value="${paymentPhone}"/>
+                        <input type="hidden" name="address" value="${paymentAddress}"/>
+                        <input type="hidden" name="paymentMethod" value="qr"/>
+                        <button type="submit" class="btn btn-success">
+                            ✔ Tôi đã thanh toán
+                        </button>
+                    </form>
+                </c:otherwise>
+            </c:choose>
         </c:when>
         <c:otherwise>
             <form action="checkout" method="post">
@@ -236,9 +245,22 @@ textarea {
                     <label class="form-label" for="address">Địa chỉ nhận hàng</label>
                     <textarea id="address" name="address" rows="4" placeholder="Số nhà, đường, quận, thành phố">${paymentAddress != null ? paymentAddress : customer.address}</textarea>
                 </div>
+                <div class="form-group">
+                    <label class="form-label">Phương thức thanh toán</label>
+                    <div style="display:flex; gap:14px; flex-wrap:wrap;">
+                        <label style="display:inline-flex; align-items:center; gap:8px; font-weight:700;">
+                            <input type="radio" name="paymentMethod" value="qr" <c:if test="${paymentMethod == null || paymentMethod == 'qr'}">checked</c:if> />
+                            Chuyển khoản ngân hàng
+                        </label>
+                        <label style="display:inline-flex; align-items:center; gap:8px; font-weight:700;">
+                            <input type="radio" name="paymentMethod" value="cod" <c:if test="${paymentMethod == 'cod'}">checked</c:if> />
+                            Đưa tiền khi nhận hàng (COD)
+                        </label>
+                    </div>
+                </div>
 
                 <button type="submit" class="btn btn-success">
-                    📩 Tiếp tục đến QR
+                    📩 Tiếp tục
                 </button>
             </form>
         </c:otherwise>

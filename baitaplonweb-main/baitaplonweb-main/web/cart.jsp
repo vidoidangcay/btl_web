@@ -9,7 +9,6 @@
 
 <style>
 body { background: #f6f6f6; margin: 0; font-family: Arial, sans-serif; }
-.header { background: #d70018; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; }
 .container { max-width: 1200px; margin: 30px auto; }
 .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
 .card { background: white; border-radius: 14px; overflow: hidden; transition: 0.3s; border: 1px solid #eee; position: relative; }
@@ -40,14 +39,7 @@ body { background: #f6f6f6; margin: 0; font-family: Arial, sans-serif; }
     <c:redirect url="login.jsp"/>
 </c:if>
 
-<div class="header">
-    <div>
-        <a href="home" style="color:white; text-decoration:none; font-weight:bold;">MY CELL PHONE</a>
-    </div>
-    <div>
-        Xin chào, <b>${sessionScope.accounts.username}</b> | <a href="logout" style="color:white;">Đăng xuất</a>
-    </div>
-</div>
+<jsp:include page="header.jsp" />
 
 <div class="container">
     <h2>🛒 Giỏ hàng của bạn</h2>

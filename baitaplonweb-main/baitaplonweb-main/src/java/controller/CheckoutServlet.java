@@ -131,10 +131,15 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
         String name = request.getParameter("name");
         String phone = request.getParameter("phone");
         String address = request.getParameter("address");
+        String paymentMethod = request.getParameter("paymentMethod");
+        if (paymentMethod == null || paymentMethod.isEmpty()) {
+            paymentMethod = "qr";
+        }
 
         request.setAttribute("paymentName", name);
         request.setAttribute("paymentPhone", phone);
         request.setAttribute("paymentAddress", address);
+        request.setAttribute("paymentMethod", paymentMethod);
 
         if (name == null || name.trim().isEmpty() || phone == null || phone.trim().isEmpty()
                 || address == null || address.trim().isEmpty()) {

@@ -16,13 +16,7 @@ body {
 }
 
 /* HEADER */
-.header {
-    background: #d70018;
-    color: white;
-    padding: 15px 30px;
-    font-size: 20px;
-    font-weight: bold;
-}
+/* Shared header styles are now in css/style.css */
 
 /* LAYOUT */
 .container {
@@ -187,11 +181,7 @@ button:hover {
 
 <body>
 
-<div class="header">
-    <a href="home" style="color: white; text-decoration: none;">
-        MY CELL PHONE
-    </a>
-</div>
+<jsp:include page="header.jsp" />
 
 <div class="container">
 
@@ -328,8 +318,7 @@ button:hover {
                         <th style="padding:12px 8px;">Mã đơn</th>
                         <th style="padding:12px 8px;">Ngày</th>
                         <th style="padding:12px 8px;">Tổng tiền</th>
-                        <th style="padding:12px 8px;">Trạng thái</th>
-                        <th style="padding:12px 8px;">Voucher</th>
+                        <th style="padding:12px 8px;">Trạng thái</th>                        <th style="padding:12px 8px;">Thanh toán</th>                        <th style="padding:12px 8px;">Voucher</th>
                         <th style="padding:12px 8px;">Theo dõi</th>
                     </tr>
                 </thead>
@@ -347,6 +336,7 @@ button:hover {
                                     <c:otherwise>Đã hủy</c:otherwise>
                                 </c:choose>
                             </td>
+                            <td style="padding:12px 8px;">${order.paidStatus}</td>
                             <td style="padding:12px 8px;">${order.voucher_code}</td>
                             <td style="padding:12px 8px;">
                                 <a href="order?orderId=${order.id}" style="color:#0d4b87; text-decoration:none; font-weight:bold;">Xem</a>
@@ -355,7 +345,7 @@ button:hover {
                     </c:forEach>
                     <c:if test="${empty orders}">
                         <tr>
-                            <td colspan="5" style="padding:16px 8px; text-align:center; color:#666;">Bạn chưa có đơn hàng nào.</td>
+                            <td colspan="7" style="padding:16px 8px; text-align:center; color:#666;">Bạn chưa có đơn hàng nào.</td>
                         </tr>
                     </c:if>
                 </tbody>

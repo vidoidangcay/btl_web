@@ -12,12 +12,13 @@ public class Orders {
     private String receiver_phone;
     private String shipping_address;
     private String voucher_code;
+    private String paymentMethod;
 
     public Orders() {
     }
 
     public Orders(int id, Timestamp date, double totalmoney, int status, String username, 
-                  String receiver_name, String receiver_phone, String shipping_address, String voucher_code) {
+                  String receiver_name, String receiver_phone, String shipping_address, String voucher_code, String paymentMethod) {
         this.id = id;
         this.date = date;
         this.totalmoney = totalmoney;
@@ -27,6 +28,7 @@ public class Orders {
         this.receiver_phone = receiver_phone;
         this.shipping_address = shipping_address;
         this.voucher_code = voucher_code;
+        this.paymentMethod = paymentMethod;
     }
 
     // --- NHÓM GETTER ---
@@ -51,10 +53,24 @@ public class Orders {
     public void setShipping_address(String shipping_address) { this.shipping_address = shipping_address; }
     public void setVoucher_code(String voucher_code) { this.voucher_code = voucher_code; }
 
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
+
+    public boolean isPaid() {
+        return paymentMethod != null && !paymentMethod.equalsIgnoreCase("cod");
+    }
+
+    public String getPaidStatus() {
+        if (paymentMethod == null) {
+            return "Chưa xác định";
+        }
+        return paymentMethod.equalsIgnoreCase("cod") ? "Chưa thanh toán" : "Đã thanh toán";
+    }
+
     // Gợi ý thêm hàm toString để Admin dễ debug (kiểm tra dữ liệu)
     @Override
     public String toString() {
         return "Orders{" + "id=" + id + ", totalmoney=" + totalmoney + ", status=" + status + 
-               ", username=" + username + ", receiver=" + receiver_name + "}";
+               ", username=" + username + ", receiver=" + receiver_name + ", paymentMethod=" + paymentMethod + "}";
     }
 }

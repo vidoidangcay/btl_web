@@ -20,12 +20,6 @@
             padding: 0 20px 40px;
         }
 
-        header {
-            background: linear-gradient(135deg, #d70018 0%, #f24e5f 100%);
-            color: white;
-            padding: 18px 0;
-            box-shadow: 0 8px 25px rgba(215, 0, 24, 0.18);
-        }
 
         .logo {
             font-weight: 900;
@@ -405,36 +399,7 @@
             <link rel="stylesheet" href="css/style.css">
 <body>
 
-   <header>
-    <div class="container" style="display:flex; justify-content:space-between; align-items:center;">
-
-        <div class="logo">MY CELL PHONE</div>
-
-        <div style="display:flex; align-items:center; gap:10px;">
-            <c:if test="${sessionScope.accounts != null}">
-                <!-- GIỎ HÀNG -->
-                <c:if test="${sessionScope.accounts.role != 1}">
-                    <a href="cart" class="header-action" style="margin-right:8px;">
-                        🛒 Giỏ hàng
-                    </a>
-                </c:if>
-
-                <!-- ADMIN -->
-                <c:if test="${sessionScope.accounts.role == 1}">
-                    <a href="admin" class="header-action" style="margin-right:8px;">
-                        ⚙️ Admin
-                    </a>
-                </c:if>
-
-                <!-- THÔNG TIN CÁ NHÂN -->
-                <a href="profile" class="header-action">👤 Hồ sơ</a>
-            </c:if>
-            <c:if test="${sessionScope.accounts == null}">
-                <a href="login.jsp" class="header-action">Đăng nhập / Đăng ký</a>
-            </c:if>
-        </div>
-    </div>
-    </header>
+    <jsp:include page="header.jsp" />
 
     <div class="container">
         <div class="main-layout">
@@ -514,7 +479,7 @@
 
             <c:choose>
 
-                <c:when test="${wishSet.contains(p.id)}">
+                <c:when test="${not empty wishMap[p.id]}">
                     <a href="wishlist?action=remove&id=${p.id}"
                        style="position:absolute; top:8px; right:10px; color:gold; font-size:18px; text-decoration:none;">
                         *

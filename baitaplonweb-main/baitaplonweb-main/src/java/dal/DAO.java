@@ -24,98 +24,200 @@ public class DAO extends DBContext {
     return null;
 }
 
-// Đăng ký: Insert vào Accounts (role=0) và Customers (points=0)
-public void register(String user, String pass, String fullname, String email, String phone, String address) {
-    String sqlAcc = "INSERT INTO Accounts (username, password, role) VALUES (?, ?, 0)";
-    String sqlCust = "INSERT INTO Customers (username, fullname, email, phone, address, points) VALUES (?, ?, ?, ?, ?, 0)";
-    
+public List<Accounts> getAllAccounts() {
+    List<Accounts> list = new ArrayList<>();
+    String sql = "SELECT * FROM Accounts";
     try {
-        connection.setAutoCommit(false); // Bắt đầu Giao dịch
-
-        // Insert vào Accounts
-        PreparedStatement ps1 = connection.prepareStatement(sqlAcc);
-        ps1.setString(1, user);
-        ps1.setString(2, pass);
-        ps1.executeUpdate();
-
-        // Insert vào Customers
-        PreparedStatement ps2 = connection.prepareStatement(sqlCust);
-        ps2.setString(1, user);
-        ps2.setString(2, fullname);
-        ps2.setString(3, email);
-        ps2.setString(4, phone);
-        ps2.setString(5, address);
-        ps2.executeUpdate();
-
-        connection.commit(); // Lưu vĩnh viễn
+        PreparedStatement st = connection.prepareStatement(sql);
+        ResultSet rs = st.executeQuery();
+        while (rs.next()) {
+            list.add(new Accounts(rs.getString("username"), rs.getString("password"), rs.getInt("role")));
+        }
     } catch (SQLException e) {
-        try { connection.rollback(); } catch (SQLException ex) {} // Lỗi là hủy hết
-        throw new RuntimeException(e); // Đẩy lỗi ra cho Servlet bắt
+        System.out.println(e);
+    }
+    return list;
+}
+
+public void deleteAccount(String username) {
+    String sqlDeleteUserVoucher = "DELETE FROM UserVoucher WHERE username = ?";
+    String sqlDeleteWishlist = "DELETE FROM Wishlist WHERE username = ?";
+    String sqlDeleteCart = "DELETE FROM Cart WHERE username = ?";
+    String sqlDeleteOrderShipment = "DELETE FROM OrderShipment WHERE username = ?";
+    String sqlSelectOrders = "SELECT id FROM Orders WHERE username = ?";
+    String sqlDeleteOrderDetails = "DELETE FROM OrderDetails WHERE oid = ?";
+    String sqlDeleteOrders = "DELETE FROM Orders WHERE username = ?";
+    String sqlDeleteCustomer = "DELETE FROM Customers WHERE username = ?";
+    String sqlDeleteAccount = "DELETE FROM Accounts WHERE username = ?";
+
+    try {
+        connection.setAutoCommit(false);
+
+        PreparedStatement stUV = connection.prepareStatement(sqlDeleteUserVoucher);
+        stUV.setString(1, username);
+        stUV.executeUpdate();
+
+        PreparedStatement stWL = connection.prepareStatement(sqlDeleteWishlist);
+        stWL.setString(1, username);
+        stWL.executeUpdate();
+
+        PreparedStatement stCart = connection.prepareStatement(sqlDeleteCart);
+        stCart.setString(1, username);
+        stCart.executeUpdate();
+
+        PreparedStatement stShipment = connection.prepareStatement(sqlDeleteOrderShipment);
+        stShipment.setString(1, username);
+        stShipment.executeUpdate();
+
+        PreparedStatement stOrders = connection.prepareStatement(sqlSelectOrders);
+        stOrders.setString(1, username);
+        ResultSet rsOrders = stOrders.executeQuery();
+        while (rsOrders.next()) {
+            int oid = rsOrders.getInt("id");
+            PreparedStatement stOrderDetails = connection.prepareStatement(sqlDeleteOrderDetails);
+            stOrderDetails.setInt(1, oid);
+            stOrderDetails.executeUpdate();
+        }
+
+        PreparedStatement stDelOrders = connection.prepareStatement(sqlDeleteOrders);
+        stDelOrders.setString(1, username);
+        stDelOrders.executeUpdate();
+
+        PreparedStatement stCust = connection.prepareStatement(sqlDeleteCustomer);
+        stCust.setString(1, username);
+        stCust.executeUpdate();
+
+        PreparedStatement stAcc = connection.prepareStatement(sqlDeleteAccount);
+        stAcc.setString(1, username);
+        stAcc.executeUpdate();
+
+        connection.commit();
+    } catch (SQLException e) {
+        try {
+            connection.rollback();
+        } catch (SQLException ex) {
+            System.out.println(ex);
+        }
+        System.out.println(e);
     } finally {
-        try { connection.setAutoCommit(true); } catch (SQLException e) {}
-    }
-}
-public Products getProducts(String id) {
-    // Thêm điều kiện quantity > 0 để lọc sản phẩm hết hàng
-    String sql = "SELECT * FROM Products WHERE id = ? AND quantity > 0";
-
-    try {
-        PreparedStatement ps = connection.prepareStatement(sql);
-        ps.setString(1, id);
-        ResultSet rs = ps.executeQuery();
-
-        if (rs.next()) {
-            Products p = new Products();
-
-            p.setId(rs.getString("id"));
-            p.setName(rs.getString("name"));
-            // Lưu ý: SQL là DECIMAL(10,2) nên dùng getDouble hoặc getBigDecimal
-            p.setPrice(rs.getDouble("price")); 
-            p.setImage(rs.getString("image"));
-            // Bạn có thể set thêm quantity nếu class Products có thuộc tính này
-            // p.setQuantity(rs.getInt("quantity"));
-
-            return p;
+        try {
+            connection.setAutoCommit(true);
+        } catch (SQLException ex) {
+            System.out.println(ex);
         }
-
-    } catch (Exception e) {
-        e.printStackTrace();
     }
-
-    // Nếu sản phẩm có id đó nhưng quantity = 0, hàm sẽ trả về null
-    return null;
 }
-public int insertOrder(Orders o) {
-    String sql = "INSERT INTO Orders (date, totalmoney, status, username, receiver_name, receiver_phone, shipping_address, voucher_code) "
-               + "VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
 
-    try {
-        Timestamp orderDate = Timestamp.valueOf(LocalDateTime.now());
-
-        PreparedStatement st = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
-
-        st.setTimestamp(1, orderDate);         // date
-        st.setDouble(2, o.getTotalmoney());
-        st.setInt(3, o.getStatus());
-        st.setString(4, o.getUsername());
-        st.setString(5, o.getReceiver_name());
-        st.setString(6, o.getReceiver_phone());
-        st.setString(7, o.getShipping_address());
-        st.setString(8, o.getVoucher_code());
-
-        st.executeUpdate();
-
-        ResultSet rs = st.getGeneratedKeys();
-        if (rs.next()) {
-            return rs.getInt(1); // orderId
+    public boolean hasOrdersInStatus(String username, int status) {
+        String sql = "SELECT COUNT(*) AS count FROM Orders WHERE username = ? AND status = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, username);
+            st.setInt(2, status);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("count") > 0;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error hasOrdersInStatus: " + e);
         }
-
-    } catch (Exception e) {
-        System.out.println("insertOrder error: " + e);
+        return false;
     }
 
-    return -1;
-}
+    public int insertOrder(Orders o) {
+        String sql = "INSERT INTO Orders (date, totalmoney, status, username, receiver_name, receiver_phone, shipping_address, voucher_code, payment_method) "
+                   + "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)";
+        try {
+            Timestamp orderDate = Timestamp.valueOf(LocalDateTime.now());
+            PreparedStatement st = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            st.setTimestamp(1, orderDate);
+            st.setDouble(2, o.getTotalmoney());
+            st.setInt(3, o.getStatus());
+            st.setString(4, o.getUsername());
+            st.setString(5, o.getReceiver_name());
+            st.setString(6, o.getReceiver_phone());
+            st.setString(7, o.getShipping_address());
+            st.setString(8, o.getVoucher_code());
+            st.setString(9, o.getPaymentMethod());
+            st.executeUpdate();
+            ResultSet rs = st.getGeneratedKeys();
+            if (rs.next()) {
+                return rs.getInt(1);
+            }
+        } catch (Exception e) {
+            System.out.println("insertOrder error: " + e);
+        }
+        return -1;
+    }
+
+    public boolean hasPendingAdminDeleteRequest(String targetUsername) {
+        String sql = "SELECT COUNT(*) AS count FROM AdminDeleteRequest WHERE target_admin = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, targetUsername);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("count") > 0;
+            }
+        } catch (SQLException e) {
+            System.out.println("Error hasPendingAdminDeleteRequest: " + e);
+        }
+        return false;
+    }
+
+    public String getAdminDeleteRequester(String targetUsername) {
+        String sql = "SELECT requester_admin FROM AdminDeleteRequest WHERE target_admin = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, targetUsername);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return rs.getString("requester_admin");
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getAdminDeleteRequester: " + e);
+        }
+        return null;
+    }
+
+    public void createAdminDeleteRequest(String targetUsername, String requesterUsername) {
+        String sql = "INSERT INTO AdminDeleteRequest (target_admin, requester_admin) VALUES (?, ?)";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, targetUsername);
+            st.setString(2, requesterUsername);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error createAdminDeleteRequest: " + e);
+        }
+    }
+
+    public void removeAdminDeleteRequest(String targetUsername) {
+        String sql = "DELETE FROM AdminDeleteRequest WHERE target_admin = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, targetUsername);
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error removeAdminDeleteRequest: " + e);
+        }
+    }
+
+    public List<String> getPendingAdminDeleteTargets() {
+        List<String> list = new ArrayList<>();
+        String sql = "SELECT target_admin FROM AdminDeleteRequest";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            ResultSet rs = st.executeQuery();
+            while (rs.next()) {
+                list.add(rs.getString("target_admin"));
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getPendingAdminDeleteTargets: " + e);
+        }
+        return list;
+    }
+
 public void applyVoucher(String username, String pid, String newVoucherCode) {
     // 1. Lấy voucher_code cũ để hoàn lại số lượng
     String sqlGetOld = "SELECT voucher_code FROM UserVoucher WHERE username = ? AND pid = ?";
@@ -491,7 +593,8 @@ public Accounts login(String user, String pass) {
                     rs.getString("receiver_name"),
                     rs.getString("receiver_phone"),
                     rs.getString("shipping_address"),
-                    rs.getString("voucher_code")
+                    rs.getString("voucher_code"),
+                    rs.getString("payment_method")
                 ));
             }
         } catch (SQLException e) {
@@ -763,6 +866,24 @@ public Accounts login(String user, String pass) {
         }
     }
 
+    public void updateProduct(Products p) {
+        String sql = "UPDATE Products SET name=?, quantity=?, price=?, releaseDate=?, describe=?, image=?, cid=? WHERE id=?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, p.getName());
+            st.setInt(2, p.getQuantity());
+            st.setDouble(3, p.getPrice());
+            st.setDate(4, p.getReleaseDate());
+            st.setString(5, p.getDescribe());
+            st.setString(6, p.getImage());
+            st.setInt(7, p.getCid());
+            st.setString(8, p.getId());
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error updateProduct: " + e);
+        }
+    }
+
     // ==========================================
     // 3. XỬ LÝ ACCOUNT (TÀI KHOẢN)
     // ==========================================
@@ -993,9 +1114,9 @@ public List<String> getWishlist(String username) {
     return list;
 }
 // Đăng ký mới: Chèn vào cả 2 bảng Accounts và Customers
-public void register(String user, String pass, String phone, String address) {
+public void register(String user, String pass, String fullname, String email, String phone, String address) {
     String sqlAcc = "INSERT INTO Accounts (username, password, role) VALUES (?, ?, 0)";
-    String sqlCust = "INSERT INTO Customers (username, phone, address) VALUES (?, ?, ?)";
+    String sqlCust = "INSERT INTO Customers (username, fullname, email, phone, address, points) VALUES (?, ?, ?, ?, ?, 0)";
     try {
         // Tắt auto commit để thực hiện giao dịch (transaction) - Đảm bảo cả 2 bảng cùng được lưu
         connection.setAutoCommit(false);
@@ -1009,8 +1130,10 @@ public void register(String user, String pass, String phone, String address) {
         // 2. Chèn vào Customers
         PreparedStatement st2 = connection.prepareStatement(sqlCust);
         st2.setString(1, user);
-        st2.setString(2, phone);
-        st2.setString(3, address);
+        st2.setString(2, fullname);
+        st2.setString(3, email);
+        st2.setString(4, phone);
+        st2.setString(5, address);
         st2.executeUpdate();
 
         connection.commit();
@@ -1018,6 +1141,68 @@ public void register(String user, String pass, String phone, String address) {
     } catch (SQLException e) {
         try { connection.rollback(); } catch (SQLException ex) {}
         System.out.println("Error Register: " + e);
+    }
+}
+public void insertAccount(String username, String password, int role, String fullname, String email, String phone, String address) {
+    String sqlAcc = "INSERT INTO Accounts (username, password, role) VALUES (?, ?, ?)";
+    String sqlCust = "INSERT INTO Customers (username, fullname, email, phone, address, points) VALUES (?, ?, ?, ?, ?, 0)";
+    try {
+        connection.setAutoCommit(false);
+        PreparedStatement st1 = connection.prepareStatement(sqlAcc);
+        st1.setString(1, username);
+        st1.setString(2, password);
+        st1.setInt(3, role);
+        st1.executeUpdate();
+        if (role == 0) {
+            PreparedStatement st2 = connection.prepareStatement(sqlCust);
+            st2.setString(1, username);
+            st2.setString(2, fullname);
+            st2.setString(3, email);
+            st2.setString(4, phone);
+            st2.setString(5, address);
+            st2.executeUpdate();
+        }
+        connection.commit();
+    } catch (SQLException e) {
+        try { connection.rollback(); } catch (SQLException ex) {}
+        System.out.println("Error insertAccount: " + e);
+    } finally {
+        try { connection.setAutoCommit(true); } catch (SQLException e) { System.out.println(e); }
+    }
+}
+public void insertCustomer(Customers c) {
+    String sql = "INSERT INTO Customers (username, fullname, email, phone, address, points) VALUES (?, ?, ?, ?, ?, ?)";
+    try {
+        PreparedStatement st = connection.prepareStatement(sql);
+        st.setString(1, c.getUsername());
+        st.setString(2, c.getFullname());
+        st.setString(3, c.getEmail());
+        st.setString(4, c.getPhone());
+        st.setString(5, c.getAddress());
+        st.setInt(6, c.getPoints());
+        st.executeUpdate();
+    } catch (SQLException e) {
+        System.out.println(e);
+    }
+}
+public void updateAccount(String username, String password, int role) {
+    try {
+        if (password != null && !password.trim().isEmpty()) {
+            String sql = "UPDATE Accounts SET password = ?, role = ? WHERE username = ?";
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setString(1, password);
+            st.setInt(2, role);
+            st.setString(3, username);
+            st.executeUpdate();
+        } else {
+            String sql = "UPDATE Accounts SET role = ? WHERE username = ?";
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, role);
+            st.setString(2, username);
+            st.executeUpdate();
+        }
+    } catch (SQLException e) {
+        System.out.println(e);
     }
 }
 public void useVoucher(String code) {
@@ -1150,7 +1335,8 @@ public Customers getCustomerByUsername(String username) {
                     rs.getString("receiver_name"),
                     rs.getString("receiver_phone"),
                     rs.getString("shipping_address"),
-                    rs.getString("voucher_code")
+                    rs.getString("voucher_code"),
+                    rs.getString("payment_method")
                 ));
             }
         } catch (SQLException e) {
@@ -1175,7 +1361,8 @@ public Customers getCustomerByUsername(String username) {
                     rs.getString("receiver_name"),
                     rs.getString("receiver_phone"),
                     rs.getString("shipping_address"),
-                    rs.getString("voucher_code")
+                    rs.getString("voucher_code"),
+                    rs.getString("payment_method")
                 );
             }
         } catch (SQLException e) {
@@ -1203,6 +1390,41 @@ public Customers getCustomerByUsername(String username) {
             System.out.println("Error getOrderDetailsByOrderId: " + e);
         }
         return list;
+    }
+
+    public Feedback getFeedbackByOrderId(int orderId) {
+        String sql = "SELECT * FROM Feedback WHERE order_id = ?";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, orderId);
+            ResultSet rs = st.executeQuery();
+            if (rs.next()) {
+                return new Feedback(
+                    rs.getInt("id"),
+                    rs.getInt("order_id"),
+                    rs.getString("username"),
+                    rs.getString("comment"),
+                    rs.getTimestamp("createdDate")
+                );
+            }
+        } catch (SQLException e) {
+            System.out.println("Error getFeedbackByOrderId: " + e);
+        }
+        return null;
+    }
+
+    public void addFeedback(Feedback feedback) {
+        String sql = "INSERT INTO Feedback (order_id, username, comment, createdDate) VALUES (?, ?, ?, ?)";
+        try {
+            PreparedStatement st = connection.prepareStatement(sql);
+            st.setInt(1, feedback.getOrderId());
+            st.setString(2, feedback.getUsername());
+            st.setString(3, feedback.getComment());
+            st.setTimestamp(4, feedback.getCreatedDate());
+            st.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println("Error addFeedback: " + e);
+        }
     }
 
 public void updateCustomer(Customers c) {

@@ -9,6 +9,8 @@
 </head>
 <body>
 
+<jsp:include page="header.jsp" />
+
     <div class="section-card" style="width:800px; margin:50px auto; background:white; padding:20px; border-radius:10px;">
 
         <h2>${detail.name}</h2>

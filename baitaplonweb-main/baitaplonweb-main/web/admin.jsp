@@ -77,6 +77,69 @@
             color: white;
             transform: translateY(-1px);
         }
+
+        .admin-subnav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            padding: 18px 20px;
+            margin-bottom: 24px;
+            border-radius: 24px;
+            background: #ffffff;
+            border: 1px solid rgba(13, 75, 135, 0.15);
+            box-shadow: 0 18px 40px rgba(13, 75, 135, 0.08);
+        }
+
+        .admin-subnav a {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            min-width: 220px;
+            padding: 16px 24px;
+            border-radius: 18px;
+            background: #eef4ff;
+            color: #0d4b87;
+            font-size: 1.05rem;
+            font-weight: 700;
+            line-height: 1.4;
+            text-decoration: none;
+            transition: all 0.25s ease;
+        }
+
+        .admin-subnav a:hover {
+            transform: translateY(-1px);
+            background: #dde8ff;
+        }
+
+        .admin-subnav a.active {
+            background: #0d4b87;
+            color: white;
+            box-shadow: 0 18px 30px rgba(13, 75, 135, 0.18);
+        }
+
+        .alert-banner {
+            margin: 24px 0;
+            padding: 16px 20px;
+            border-radius: 16px;
+            background: #fff4e6;
+            color: #9a5008;
+            border: 1px solid #f5d5b4;
+            font-weight: 700;
+            box-shadow: 0 8px 24px rgba(255, 188, 123, 0.12);
+        }
+
+        .section h2 {
+            margin-bottom: 18px;
+            font-size: 1.9rem;
+            border-left: 6px solid #0d4b87;
+            padding-left: 14px;
+            letter-spacing: -0.02em;
+        }
+
+        .section {
+            margin-top: 32px;
+        }
     </style>
 <link rel="stylesheet" href="css/style.css">
 </head>
@@ -97,13 +160,19 @@
         <ul>
             <li><a href="admin?view=dashboard" class="${view == 'dashboard' ? 'active' : ''}">Tổng quan</a></li>
             <li><a href="admin?view=products" class="${view == 'products' ? 'active' : ''}">Sản phẩm</a></li>
-            <li><a href="admin?view=categories" class="${view == 'categories' ? 'active' : ''}">Danh mục</a></li>
+            <li><a href="admin?view=accounts" class="${view == 'accounts' || view == 'addAccount' ? 'active' : ''}">Tài khoản</a></li>
             <li><a href="admin?view=suppliers" class="${view == 'suppliers' ? 'active' : ''}">Nhà cung cấp</a></li>
             <li><a href="admin?view=vouchers" class="${view == 'vouchers' ? 'active' : ''}">Voucher</a></li>
             <li><a href="admin?view=orders" class="${view == 'orders' ? 'active' : ''}">Đơn hàng <c:if test="${pendingOrderCount > 0}">(${pendingOrderCount})</c:if></a></li>
             <li><a href="admin?view=stockins" class="${view == 'stockins' ? 'active' : ''}">Nhập kho</a></li>
         </ul>
     </nav>
+    <c:if test="${not empty param.alert}">
+        <div class="alert-banner">${param.alert}</div>
+    </c:if>
+    <c:if test="${not empty requestScope.alert}">
+        <div class="alert-banner">${requestScope.alert}</div>
+    </c:if>
     <c:if test="${view == 'dashboard'}">
         <div class="grid cards" id="dashboard">
             <div class="card">
@@ -111,12 +180,12 @@
                 <strong>${totalProductCount}</strong>
             </div>
             <div class="card">
-                <h3>Danh mục</h3>
-                <strong>${categories.size()}</strong>
-            </div>
-            <div class="card">
                 <h3>Voucher</h3>
                 <strong>${vouchers.size()}</strong>
+            </div>
+            <div class="card">
+                <h3>Tài khoản</h3>
+                <strong>${accounts.size()}</strong>
             </div>
             <div class="card">
                 <h3>Đơn mới</h3>
@@ -160,6 +229,7 @@
                         <td><fmt:formatNumber value="${p.price}" type="number" /> đ</td>
                         <td><fmt:formatDate value="${p.releaseDate}" pattern="yyyy-MM-dd"/></td>
                         <td>
+                            <a href="admin?view=products&productCategory=${productCategoryFilter}&page=${currentProductPage}&editProductId=${p.id}" class="small-btn btn-update" style="margin-right:6px;">Sửa</a>
                             <form action="admin" method="post" style="display:inline-block; margin-right:6px;">
                                 <input type="hidden" name="view" value="${view}" />
                                 <input type="hidden" name="productCategory" value="${productCategoryFilter}" />
@@ -187,78 +257,44 @@
     </div>
 
     <div class="section" id="add-product">
-        <h2>Thêm sản phẩm mới</h2>
+        <c:choose>
+            <c:when test="${editProduct != null}">
+                <h2>Chỉnh sửa sản phẩm</h2>
+            </c:when>
+            <c:otherwise>
+                <h2>Thêm sản phẩm mới</h2>
+            </c:otherwise>
+        </c:choose>
         <div class="form-card">
             <form action="admin" method="post">
                 <input type="hidden" name="view" value="${view}" />
                 <input type="hidden" name="productCategory" value="${productCategoryFilter}" />
                 <input type="hidden" name="page" value="${currentProductPage}" />
-                <input type="hidden" name="action" value="addProduct" />
+                <input type="hidden" name="action" value="${editProduct != null ? 'editProduct' : 'addProduct'}" />
                 <div class="form-grid">
-                    <div class="field"><label>Mã sản phẩm</label><input name="productId" required /></div>
-                    <div class="field"><label>Tên sản phẩm</label><input name="productName" required /></div>
-                    <div class="field"><label>Số lượng</label><input type="number" min="0" name="productQuantity" required /></div>
-                    <div class="field"><label>Giá</label><input type="number" step="0.01" min="0" name="productPrice" required /></div>
-                    <div class="field"><label>Ngày ra mắt</label><input type="date" name="productRelease" required /></div>
+                    <div class="field"><label>Mã sản phẩm</label><input name="productId" required value="${editProduct.id}" <c:if test="${editProduct != null}">readonly</c:if> /></div>
+                    <div class="field"><label>Tên sản phẩm</label><input name="productName" required value="${editProduct.name}" /></div>
+                    <div class="field"><label>Số lượng</label><input type="number" min="0" name="productQuantity" required value="${editProduct.quantity}" /></div>
+                    <div class="field"><label>Giá</label><input type="number" step="0.01" min="0" name="productPrice" required value="${editProduct.price}" /></div>
+                    <div class="field"><label>Ngày ra mắt</label><input type="date" name="productRelease" required value="${editProduct.releaseDate}" /></div>
                     <div class="field"><label>Danh mục</label>
                         <select name="productCategoryId" required>
                             <c:forEach items="${categories}" var="c">
-                                <option value="${c.id}">${c.name}</option>
+                                <option value="${c.id}" <c:if test="${editProduct != null && editProduct.cid == c.id}">selected</c:if>>${c.name}</option>
                             </c:forEach>
                         </select>
                     </div>
-                    <div class="field"><label>Ảnh (URL)</label><input name="productImage" required /></div>
-                    <div class="field" style="grid-column: span 2;"><label>Mô tả</label><textarea name="productDescription"></textarea></div>
+                    <div class="field"><label>Ảnh (URL)</label><input name="productImage" required value="${editProduct.image}" /></div>
+                    <div class="field" style="grid-column: span 2;"><label>Mô tả</label><textarea name="productDescription">${editProduct.describe}</textarea></div>
                 </div>
-                <button class="btn-save" type="submit">Lưu sản phẩm</button>
+                <button class="btn-save" type="submit"><c:choose><c:when test="${editProduct != null}">Cập nhật sản phẩm</c:when><c:otherwise>Thêm sản phẩm</c:otherwise></c:choose></button>
+                <c:if test="${editProduct != null}">
+                    <a href="admin?view=products&productCategory=${productCategoryFilter}&page=${currentProductPage}" class="small-btn btn-delete" style="margin-left:12px;">Hủy</a>
+                </c:if>
             </form>
         </div>
     </div>
     </c:if>
-
-    <c:if test="${view == 'categories'}">
-        <div class="section" id="categories">
-                <h2>Danh mục</h2>
-                <table>
-                    <thead>
-                        <tr><th>ID</th><th>Tên</th><th>Mô tả</th><th>Hành động</th></tr>
-                    </thead>
-                    <tbody>
-                        <c:forEach items="${categories}" var="c">
-                            <tr>
-                                <td>${c.id}</td>
-                                <td>${c.name}</td>
-                                <td>${c.describe}</td>
-                                <td>
-                                    <form action="admin" method="post" style="display:inline-block;">
-                                        <input type="hidden" name="view" value="${view}" />
-                                        <input type="hidden" name="action" value="deleteCategory" />
-                                        <input type="hidden" name="categoryId" value="${c.id}" />
-                                        <button class="small-btn btn-delete" type="submit">Xóa</button>
-                                    </form>
-                                </td>
-                            </tr>
-                        </c:forEach>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="section" id="add-category">
-                <h2>Thêm danh mục</h2>
-                <div class="form-card">
-                    <form action="admin" method="post">
-                        <input type="hidden" name="view" value="${view}" />
-                        <input type="hidden" name="action" value="addCategory" />
-                        <div class="form-grid">
-                            <div class="field"><label>Tên danh mục</label><input name="categoryName" required /></div>
-                            <div class="field"><label>Mô tả</label><input name="categoryDescription" /></div>
-                        </div>
-                        <button class="btn-save" type="submit">Lưu danh mục</button>
-                    </form>
-                </div>
-            </div>
-        </div>
-        </c:if>
 
     <c:if test="${view == 'suppliers'}">
         <div class="section" id="suppliers">
@@ -305,6 +341,189 @@
             </div>
         </div>
         </c:if>
+
+    <c:if test="${view == 'accounts'}">
+    <div class="section" id="accounts">
+        <div class="admin-subnav">
+            <a href="admin?view=accounts" class="${view == 'accounts' ? 'active' : ''}"><span>📋</span>Danh sách tài khoản</a>
+            <a href="admin?view=addAccount" class="${view == 'addAccount' ? 'active' : ''}"><span>➕</span>Thêm tài khoản</a>
+        </div>
+        <h2>Danh sách tài khoản</h2>
+        <table>
+            <thead>
+                <tr><th>Username</th><th>Vai trò</th><th>Hành động</th></tr>
+            </thead>
+            <tbody>
+                <c:forEach items="${accounts}" var="a">
+                    <tr>
+                        <td>${a.username}</td>
+                        <td><c:choose><c:when test="${a.role == 1}">Admin</c:when><c:otherwise>Khách hàng</c:otherwise></c:choose></td>
+                        <td>
+                            <a href="admin?view=accounts&detailUsername=${a.username}" class="small-btn btn-update" style="margin-right:6px;">Chi tiết</a>
+                        <a href="admin?view=accounts&editUsername=${a.username}" class="small-btn btn-save" style="margin-right:6px;">Sửa</a>
+                        <c:if test="${sessionScope.accounts.username != a.username}">
+                            <c:choose>
+                                <c:when test="${a.role == 1 && pendingDeleteMap[a.username]}">
+                                    <span class="status-pill status-0">Đợi phản hồi</span>
+                                </c:when>
+                                <c:otherwise>
+                                    <form action="admin" method="post" style="display:inline-block; margin-right:6px;">
+                                        <input type="hidden" name="view" value="${view}" />
+                                        <input type="hidden" name="action" value="deleteAccount" />
+                                        <input type="hidden" name="username" value="${a.username}" />
+                                        <button class="small-btn btn-delete" type="submit">Xóa</button>
+                                    </form>
+                                </c:otherwise>
+                            </c:choose>
+                        </c:if>
+                            <c:if test="${sessionScope.accounts.username == a.username}">
+                                <span class="status-pill status-2">Đang đăng nhập</span>
+                            </c:if>
+                        </td>
+                    </tr>
+                </c:forEach>
+            </tbody>
+        </table>
+    </div>
+
+    <c:if test="${not empty detailAccount}">
+        <div class="section" id="account-detail">
+            <h2>Chi tiết tài khoản: ${detailAccount.username}</h2>
+            <div style="margin-bottom: 16px;">
+                <a href="admin?view=accounts&editUsername=${detailAccount.username}" class="small-btn btn-save">Sửa tài khoản</a>
+            </div>
+            <c:if test="${not empty deleteRequestRequester}">
+                <div class="alert-banner">
+                    <strong>Yêu cầu xóa tài khoản</strong><br />
+                    Admin <strong>${deleteRequestRequester}</strong> đã gửi yêu cầu xóa tài khoản này.
+                    <c:if test="${detailAccount.username == sessionScope.accounts.username}">
+                        <div style="margin-top:12px;">
+                            <form action="admin" method="post" style="display:inline-block; margin-right:10px;">
+                                <input type="hidden" name="view" value="accounts" />
+                                <input type="hidden" name="action" value="respondDeleteAdmin" />
+                                <input type="hidden" name="targetUsername" value="${detailAccount.username}" />
+                                <input type="hidden" name="response" value="accept" />
+                                <button class="small-btn btn-update" type="submit">Chấp nhận</button>
+                            </form>
+                            <form action="admin" method="post" style="display:inline-block;">
+                                <input type="hidden" name="view" value="accounts" />
+                                <input type="hidden" name="action" value="respondDeleteAdmin" />
+                                <input type="hidden" name="targetUsername" value="${detailAccount.username}" />
+                                <input type="hidden" name="response" value="reject" />
+                                <button class="small-btn btn-delete" type="submit">Từ chối</button>
+                            </form>
+                        </div>
+                    </c:if>
+                </div>
+            </c:if>
+            <div class="form-card" style="margin-top: 20px;">
+                <div class="form-grid">
+                    <div class="field"><label>Username</label><div>${detailAccount.username}</div></div>
+                    <div class="field"><label>Vai trò</label><div><c:choose><c:when test="${detailAccount.role == 1}">Admin</c:when><c:otherwise>Khách hàng</c:otherwise></c:choose></div></div>
+                    <div class="field"><label>Họ tên</label><div>${detailCustomer != null ? detailCustomer.fullname : '—'}</div></div>
+                    <div class="field"><label>Email</label><div>${detailCustomer != null ? detailCustomer.email : '—'}</div></div>
+                    <div class="field"><label>Điện thoại</label><div>${detailCustomer != null ? detailCustomer.phone : '—'}</div></div>
+                    <div class="field" style="grid-column: span 2;"><label>Địa chỉ</label><div>${detailCustomer != null ? detailCustomer.address : '—'}</div></div>
+                    <div class="field"><label>Điểm</label><div>${detailCustomer != null ? detailCustomer.points : '0'}</div></div>
+                    <div class="field"><label>Số đơn</label><div>${detailOrders != null ? detailOrders.size() : 0}</div></div>
+                    <div class="field"><label>Sản phẩm trong giỏ</label><div>${detailCart != null ? detailCart.size() : 0}</div></div>
+                    <div class="field"><label>Yêu thích</label><div>${detailWishlist != null ? detailWishlist.size() : 0}</div></div>
+                </div>
+            </div>
+            <c:if test="${detailAccount.role == 0 && not empty detailOrders}">
+                <div class="section" style="margin-top: 18px;">
+                    <h3>Đơn hàng gần đây</h3>
+                    <table>
+                        <thead>
+                            <tr><th>ID</th><th>Tổng tiền</th><th>Trạng thái</th><th>Voucher</th></tr>
+                        </thead>
+                        <tbody>
+                            <c:forEach items="${detailOrders}" var="o">
+                                <tr>
+                                    <td>${o.id}</td>
+                                    <td><fmt:formatNumber value="${o.totalmoney}" type="number" /> đ</td>
+                                    <td>
+                                        <c:choose>
+                                            <c:when test="${o.status == 0}">Chờ duyệt</c:when>
+                                            <c:when test="${o.status == 1}">Đã xác nhận</c:when>
+                                            <c:when test="${o.status == 2}">Đang giao</c:when>
+                                            <c:otherwise>Hoàn thành</c:otherwise>
+                                        </c:choose>
+                                    </td>
+                                    <td>${o.voucher_code != null ? o.voucher_code : '—'}</td>
+                                </tr>
+                            </c:forEach>
+                        </tbody>
+                    </table>
+                </div>
+            </c:if>
+        </div>
+    </c:if>
+
+    <c:if test="${not empty editAccount}">
+        <div class="section" id="account-edit">
+            <h2>Chỉnh sửa tài khoản: ${editAccount.username}</h2>
+            <div class="form-card">
+                <form action="admin" method="post">
+                    <input type="hidden" name="view" value="${view}" />
+                    <input type="hidden" name="action" value="editAccount" />
+                    <input type="hidden" name="username" value="${editAccount.username}" />
+                    <div class="form-grid">
+                        <div class="field"><label>Username</label><input value="${editAccount.username}" readonly /></div>
+                        <div class="field"><label>Mật khẩu mới</label><input type="password" name="accountPassword" placeholder="Để trống nếu không đổi" /></div>
+                        <div class="field"><label>Vai trò</label>
+                            <select name="accountRole">
+                                <option value="0" <c:if test="${editAccount.role == 0}">selected</c:if>>Khách hàng</option>
+                                <option value="1" <c:if test="${editAccount.role == 1}">selected</c:if>>Admin</option>
+                            </select>
+                        </div>
+                        <div class="field"><label>Họ tên</label><input name="accountFullname" value="${editCustomer != null ? editCustomer.fullname : ''}" /></div>
+                        <div class="field"><label>Email</label><input type="email" name="accountEmail" value="${editCustomer != null ? editCustomer.email : ''}" /></div>
+                        <div class="field"><label>Điện thoại</label><input name="accountPhone" value="${editCustomer != null ? editCustomer.phone : ''}" /></div>
+                        <div class="field" style="grid-column: span 2;"><label>Địa chỉ</label><input name="accountAddress" value="${editCustomer != null ? editCustomer.address : ''}" /></div>
+                    </div>
+                    <div style="margin-top: 14px; text-align: right;">
+                        <button class="btn-save" type="submit">Lưu thay đổi</button>
+                        <a href="admin?view=accounts" class="small-btn btn-delete" style="margin-left:12px;">Hủy</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </c:if>
+</c:if>
+
+    <c:if test="${view == 'addAccount'}">
+        <div class="section" id="add-account">
+            <div class="admin-subnav">
+                <a href="admin?view=accounts" class="${view == 'accounts' ? 'active' : ''}">Danh sách tài khoản</a>
+                <a href="admin?view=addAccount" class="${view == 'addAccount' ? 'active' : ''}">Thêm tài khoản</a>
+            </div>
+            <h2>Thêm tài khoản mới</h2>
+            <div class="form-card">
+                <form action="admin" method="post">
+                    <input type="hidden" name="view" value="accounts" />
+                    <input type="hidden" name="action" value="addAccount" />
+                    <div class="form-grid">
+                        <div class="field"><label>Username</label><input name="accountUsername" required /></div>
+                        <div class="field"><label>Mật khẩu</label><input type="password" name="accountPassword" required /></div>
+                        <div class="field"><label>Vai trò</label>
+                            <select name="accountRole" id="accountRole">
+                                <option value="0">Khách hàng</option>
+                                <option value="1">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="accountDetailsFields" class="form-grid" style="margin-top: 18px;">
+                        <div class="field"><label>Họ tên</label><input name="accountFullname" required /></div>
+                        <div class="field"><label>Email</label><input type="email" name="accountEmail" required /></div>
+                        <div class="field"><label>Điện thoại</label><input name="accountPhone" required /></div>
+                        <div class="field" style="grid-column: span 2;"><label>Địa chỉ</label><input name="accountAddress" required /></div>
+                    </div>
+                    <button class="btn-save" type="submit">Thêm tài khoản</button>
+                </form>
+            </div>
+        </div>
+    </c:if>
 
     <c:if test="${view == 'vouchers'}">
     <div class="section" id="vouchers">
@@ -357,16 +576,28 @@
     <c:if test="${view == 'orders'}">
     <div class="section" id="orders">
         <h2>Đơn hàng</h2>
-        <table>
-            <thead>
-                <tr><th>ID</th><th>Khách</th><th>Tổng tiền</th><th>Trạng thái</th><th>Địa chỉ</th><th>Voucher</th><th>Chi tiết</th><th>Hành động</th></tr>
-            </thead>
-            <tbody>
-                <c:forEach items="${orders}" var="o">
-                    <tr>
+        <c:choose>
+            <c:when test="${empty orders}">
+                <div class="section-card" style="padding: 24px; text-align: center; border: 1px solid rgba(215, 0, 24, 0.15); background: #fff6f6; color: #7a1c1c;">
+                    <h3>Chưa có đơn hàng nào</h3>
+                    <p>Hiện tại chưa có đơn hàng mới. Khi có khách đặt hàng, danh sách sẽ xuất hiện tại đây.</p>
+                </div>
+            </c:when>
+            <c:otherwise>
+                <table>
+                    <thead>
+                        <tr><th>ID</th><th>Khách</th><th>Tổng tiền</th><th>Phương thức</th><th>Trạng thái</th><th>Địa chỉ</th><th>Voucher</th><th>Chi tiết</th><th>Hành động</th></tr>
+                    </thead>
+                    <tbody>
+                        <c:forEach items="${orders}" var="o">
+                            <tr>
                         <td>${o.id}</td>
                         <td>${o.username}</td>
                         <td><fmt:formatNumber value="${o.totalmoney}" type="number" /> đ</td>
+                        <td><c:choose>
+                            <c:when test="${o.paymentMethod == 'cod'}">COD</c:when>
+                            <c:otherwise>QR/Ngân hàng</c:otherwise>
+                        </c:choose></td>
                         <td>
                             <c:choose>
                                 <c:when test="${o.status == 0}"><span class="status-pill status-0">Chờ duyệt</span></c:when>
@@ -386,10 +617,10 @@
                                 <input type="hidden" name="action" value="updateOrderStatus" />
                                 <input type="hidden" name="orderId" value="${o.id}" />
                                 <select name="statusValue" style="border-radius:8px; padding:6px; border:1px solid #ccc;">
-                                    <option value="0" ${o.status == 0 ? 'selected' : ''}>Chờ duyệt</option>
-                                    <option value="1" ${o.status == 1 ? 'selected' : ''}>Đã xác nhận</option>
-                                    <option value="2" ${o.status == 2 ? 'selected' : ''}>Đã giao</option>
-                                    <option value="3" ${o.status == 3 ? 'selected' : ''}>Đã hủy</option>
+                                    <option value="0" <c:if test="${o.status == 0}">selected</c:if>>Chờ duyệt</option>
+                                    <option value="1" <c:if test="${o.status == 1}">selected</c:if>>Đã xác nhận</option>
+                                    <option value="2" <c:if test="${o.status == 2}">selected</c:if>>Đã giao</option>
+                                    <option value="3" <c:if test="${o.status == 3}">selected</c:if>>Đã hủy</option>
                                 </select>
                                 <button class="small-btn btn-update" type="submit">Cập nhật</button>
                             </form>
@@ -398,6 +629,8 @@
                 </c:forEach>
             </tbody>
         </table>
+            </c:otherwise>
+        </c:choose>
     </div>
     </c:if>
 
@@ -489,5 +722,26 @@
             this.classList.add('active');
         });
     });
+
+    const accountRoleSelect = document.getElementById('accountRole');
+    const accountDetailsFields = document.getElementById('accountDetailsFields');
+
+    function toggleAccountDetailsFields() {
+        if (!accountRoleSelect || !accountDetailsFields) return;
+        const isAdminRole = accountRoleSelect.value === '1';
+        accountDetailsFields.style.display = isAdminRole ? 'none' : 'grid';
+        accountDetailsFields.querySelectorAll('input').forEach(input => {
+            if (isAdminRole) {
+                input.removeAttribute('required');
+            } else {
+                input.setAttribute('required', 'required');
+            }
+        });
+    }
+
+    if (accountRoleSelect) {
+        accountRoleSelect.addEventListener('change', toggleAccountDetailsFields);
+        toggleAccountDetailsFields();
+    }
 </script>
 </html>

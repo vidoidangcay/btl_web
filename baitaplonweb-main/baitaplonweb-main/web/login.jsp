@@ -20,6 +20,7 @@
     </style>
 </head>
 <body>
+    <jsp:include page="header.jsp" />
     <div class="login-page">
         <h2>Đăng nhập tài khoản</h2>
 
@@ -33,7 +34,7 @@
             <div class="error-box"><%= error %></div>
         <% } %>
 
-        <form action="LoginServlet" method="post">
+        <form action="${pageContext.request.contextPath}/LoginServlet" method="post">
             <input type="text" name="user" placeholder="Tên tài khoản" required>
             <input type="password" name="pass" placeholder="Mật khẩu" required>
             <button type="submit">Đăng nhập</button>

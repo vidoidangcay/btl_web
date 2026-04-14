@@ -28,7 +28,7 @@ public class LoginServlet extends HttpServlet {
 
         if (a == null) {
             request.setAttribute("error", "Sai tài khoản hoặc mật khẩu!");
-            request.getRequestDispatcher("login.jsp").forward(request, response);
+            request.getRequestDispatcher("/login.jsp").forward(request, response);
         } else {
             // --- ĐĂNG NHẬP THÀNH CÔNG ---
             HttpSession session = request.getSession();
@@ -39,10 +39,16 @@ public class LoginServlet extends HttpServlet {
             Map<String, String> savedVouchers = dao.getSavedVouchersByUsername(a.getUsername());
             session.setAttribute("voucherMap", savedVouchers);
             
-            if(a.getRole() == 1) {
-                response.sendRedirect("admin");
+            String contextPath = request.getContextPath();
+            if (a.getRole() == 1) {
+                if (dao.hasPendingAdminDeleteRequest(a.getUsername())) {
+                    String alert = java.net.URLEncoder.encode("Bạn đang có yêu cầu xóa tài khoản cần phản hồi ngay.", java.nio.charset.StandardCharsets.UTF_8);
+                    response.sendRedirect(contextPath + "/admin?view=accounts&detailUsername=" + java.net.URLEncoder.encode(a.getUsername(), java.nio.charset.StandardCharsets.UTF_8) + "&alert=" + alert);
+                } else {
+                    response.sendRedirect(contextPath + "/admin");
+                }
             } else {
-                response.sendRedirect("home");
+                response.sendRedirect(contextPath + "/home");
             }
         }
     }
@@ -50,6 +56,6 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
-        response.sendRedirect("login.jsp");
+        response.sendRedirect(request.getContextPath() + "/login.jsp");
     }
 }

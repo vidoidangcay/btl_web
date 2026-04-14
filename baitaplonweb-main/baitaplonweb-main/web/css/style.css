@@ -89,21 +89,153 @@ header,
 .page-header,
 .topbar,
 .navbar,
-.header {
+.header,
+.site-header {
     background: linear-gradient(135deg, #d70018 0%, #ff6c76 100%);
     color: white;
-    padding: 22px 0;
+    padding: 24px 0;
     box-shadow: 0 18px 45px rgba(215, 0, 24, 0.18);
 }
 
 header .container,
 .page-header .container,
 .navbar .container,
-.header .container {
+.header .container,
+.site-header .container {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
+}
+
+.site-header {
+    min-height: 96px;
+}
+
+.site-header .logo a {
+    color: white;
+    text-decoration: none;
+}
+
+.header-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 14px 22px;
+    background: white;
+    color: #d70018;
+    border-radius: 14px;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 800;
+    white-space: nowrap;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.10);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease;
+}
+
+.header-action:hover {
+    transform: translateY(-1px);
+    background: #fff7f7;
+    box-shadow: 0 12px 24px rgba(0,0,0,0.12);
+}
+
+.admin-subnav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    padding: 18px 20px;
+    margin-bottom: 28px;
+    border-radius: 28px;
+    background: rgba(255, 255, 255, 0.16);
+    border: 1px solid rgba(215, 0, 24, 0.15);
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.24);
+}
+
+.admin-subnav a {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 26px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.95);
+    color: #4f4f4f;
+    border: 1px solid transparent;
+    font-weight: 800;
+    font-size: 1rem;
+    line-height: 1.35;
+    min-width: 210px;
+    justify-content: center;
+    transition: all 0.25s ease;
+    box-sizing: border-box;
+}
+
+.admin-subnav a:hover {
+    background: #ffffff;
+    color: #d70018;
+    border-color: rgba(215, 0, 24, 0.18);
+    transform: translateY(-1px);
+}
+
+.admin-subnav a span,
+.admin-subnav a * {
+    font-size: inherit;
+    line-height: inherit;
+}
+
+.admin-subnav a.active {
+    background: #d70018;
+    color: white;
+    border-color: #d70018;
+    box-shadow: 0 18px 34px rgba(215, 0, 24, 0.18);
+}
+
+.admin-subnav a span {
+    font-size: 1rem;
+}
+
+.small-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 9px 14px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    text-decoration: none;
+    font-size: 0.95rem;
+    font-weight: 700;
+    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.small-btn.btn-update {
+    background: white;
+    color: #0d4b87;
+    border-color: #0d4b87;
+}
+
+.small-btn.btn-delete {
+    background: #d70018;
+    color: white;
+    border-color: #d70018;
+}
+
+.small-btn:hover {
+    transform: translateY(-1px);
+}
+
+.btn-save {
+    background: linear-gradient(135deg, #d70018 0%, #ff715f 100%);
+    color: white;
+    border: none;
+    border-radius: 14px;
+    padding: 14px 20px;
+    font-weight: 700;
+}
+
+.btn-save:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 14px 28px rgba(215, 0, 24, 0.2);
 }
 
 .logo,
@@ -115,10 +247,10 @@ header .container,
     letter-spacing: 1px;
 }
 
+.logo a,
 .header a,
 .page-header a,
-.navbar a,
-.logo a {
+.navbar a {
     color: white;
 }
 
