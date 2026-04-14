@@ -628,9 +628,14 @@
                                     <option value="0" <c:if test="${o.status == 0}">selected</c:if>>Chờ duyệt</option>
                                     <option value="1" <c:if test="${o.status == 1}">selected</c:if>>Đã xác nhận</option>
                                     <option value="2" <c:if test="${o.status == 2}">selected</c:if>>Đã giao</option>
-                                    <option value="3" <c:if test="${o.status == 3}">selected</c:if>>Đã hủy</option>
                                 </select>
                                 <button class="small-btn btn-update" type="submit">Cập nhật</button>
+                            </form>
+                            <form action="admin" method="post" style="display:inline-block;">
+                                <input type="hidden" name="view" value="${view}" />
+                                <input type="hidden" name="action" value="deleteOrder" />
+                                <input type="hidden" name="orderId" value="${o.id}" />
+                                <button class="small-btn btn-delete" type="submit">Xóa đơn hàng</button>
                             </form>
                         </td>
                     </tr>

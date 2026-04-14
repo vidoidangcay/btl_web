@@ -95,7 +95,14 @@ body { background: #f6f6f6; margin: 0; font-family: Arial, sans-serif; }
                                 </div>
 
                                 <p style="color:#555; font-size: 14px;">
-                                    Thành tiền: <b style="color:#d70018;">${currentLineTotal} đ</b>
+                                    <c:choose>
+                                        <c:when test="${v != null}">
+                                            Thành tiền sau voucher: <b style="color:#d70018;">${currentLineTotal} đ</b>
+                                        </c:when>
+                                        <c:otherwise>
+                                            Thành tiền: <b style="color:#d70018;">${currentLineTotal} đ</b>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </p>
 
                                 <a href="checkout?pid=${c.pid}&quantity=${c.quantity}" 

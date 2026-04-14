@@ -816,6 +816,85 @@ public Accounts login(String user, String pass) {
         }
     }
 
+    public void deleteOrderById(int orderId) {
+        Orders order = getOrderById(orderId);
+        if (order == null) {
+            return;
+        }
+
+        List<OrderDetails> details = getOrderDetailsByOrderId(orderId);
+        String sqlUpdateStock = "UPDATE Products SET quantity = quantity + ? WHERE id = ?";
+        String sqlRefundVoucher = "UPDATE Vouchers SET quantity = quantity + 1 WHERE code = ?";
+        String sqlInsertUserVoucher = "INSERT INTO UserVoucher (username, pid, voucher_code, selectedDate) "
+                + "SELECT ?, ?, code, expirationDate FROM Vouchers WHERE code = ?";
+        String sqlDeleteFeedback = "DELETE FROM Feedback WHERE order_id = ?";
+        String sqlDeleteShipment = "DELETE FROM OrderShipment WHERE order_id = ?";
+        String sqlDeleteOrderDetails = "DELETE FROM OrderDetails WHERE oid = ?";
+        String sqlDeleteOrder = "DELETE FROM Orders WHERE id = ?";
+
+        boolean originalAutoCommit = true;
+        try {
+            originalAutoCommit = connection.getAutoCommit();
+            connection.setAutoCommit(false);
+
+            PreparedStatement stStock = connection.prepareStatement(sqlUpdateStock);
+            for (OrderDetails od : details) {
+                stStock.setInt(1, od.getQuantity());
+                stStock.setString(2, od.getPid());
+                stStock.executeUpdate();
+            }
+
+            if (order.getVoucher_code() != null && !order.getVoucher_code().trim().isEmpty()) {
+                PreparedStatement stRefundVoucher = connection.prepareStatement(sqlRefundVoucher);
+                stRefundVoucher.setString(1, order.getVoucher_code());
+                stRefundVoucher.executeUpdate();
+
+                for (OrderDetails od : details) {
+                    try {
+                        PreparedStatement stInsertUV = connection.prepareStatement(sqlInsertUserVoucher);
+                        stInsertUV.setString(1, order.getUsername());
+                        stInsertUV.setString(2, od.getPid());
+                        stInsertUV.setString(3, order.getVoucher_code());
+                        stInsertUV.executeUpdate();
+                    } catch (SQLException ignored) {
+                        // Ignore duplicate or already restored voucher entries.
+                    }
+                }
+            }
+
+            PreparedStatement stDeleteFeedback = connection.prepareStatement(sqlDeleteFeedback);
+            stDeleteFeedback.setInt(1, orderId);
+            stDeleteFeedback.executeUpdate();
+
+            PreparedStatement stDeleteShipment = connection.prepareStatement(sqlDeleteShipment);
+            stDeleteShipment.setInt(1, orderId);
+            stDeleteShipment.executeUpdate();
+
+            PreparedStatement stDeleteOrderDetails = connection.prepareStatement(sqlDeleteOrderDetails);
+            stDeleteOrderDetails.setInt(1, orderId);
+            stDeleteOrderDetails.executeUpdate();
+
+            PreparedStatement stDeleteOrder = connection.prepareStatement(sqlDeleteOrder);
+            stDeleteOrder.setInt(1, orderId);
+            stDeleteOrder.executeUpdate();
+
+            connection.commit();
+        } catch (SQLException e) {
+            try {
+                connection.rollback();
+            } catch (SQLException rollbackEx) {
+                System.out.println("Error rollback deleteOrderById: " + rollbackEx);
+            }
+            System.out.println("Error deleteOrderById: " + e);
+        } finally {
+            try {
+                connection.setAutoCommit(originalAutoCommit);
+            } catch (SQLException ex) {
+                System.out.println("Error reset autoCommit: " + ex);
+            }
+        }
+    }
+
     public Products getProductById(String id) {
         String sql = "SELECT * FROM Products WHERE id = ?";
         try {

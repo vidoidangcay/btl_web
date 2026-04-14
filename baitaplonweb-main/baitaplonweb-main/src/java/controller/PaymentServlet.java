@@ -110,30 +110,71 @@ public class PaymentServlet extends HttpServlet {
             orderDetails.add(od);
         }
 
-        OrderShipment shipment = new OrderShipment();
-        shipment.setUsername(username);
-        shipment.setReceiver_name(request.getParameter("name"));
-        shipment.setReceiver_phone(request.getParameter("phone"));
-        shipment.setShipping_address(request.getParameter("address"));
-        shipment.setStatus(0);
-        shipment.setCreatedDate(new java.sql.Timestamp(System.currentTimeMillis()));
-
-        int orderId = dao.insertOrderWithDetails(order, orderDetails, shipment);
-        if (orderId <= 0) {
-            response.sendRedirect("cart");
-            return;
-        }
+        String address = request.getParameter("address");
+        String phone = request.getParameter("phone");
+        String name = request.getParameter("name");
+        String paymentMethodParam = request.getParameter("paymentMethod");
 
         List<String> purchasedPids = new ArrayList<>();
+        boolean haveOrderCreated = false;
+
         for (Cart c : selectedItems) {
-            dao.removeCartItem(username, c.getPid());
-            purchasedPids.add(c.getPid());
+            Products p = dao.getProductById(c.getPid());
+            if (p == null) continue;
+
+            double lineTotal = p.getPrice() * c.getQuantity();
+            String productVoucher = null;
+            if (voucherMap != null && voucherMap.containsKey(c.getPid())) {
+                Vouchers v = dao.getVoucherByCode(voucherMap.get(c.getPid()));
+                if (v != null) {
+                    lineTotal -= v.getDiscountValue();
+                    productVoucher = v.getCode();
+                }
+            }
+            lineTotal = Math.max(0, lineTotal);
+
+            Orders itemOrder = new Orders();
+            itemOrder.setUsername(username);
+            itemOrder.setTotalmoney(lineTotal);
+            itemOrder.setStatus(0);
+            itemOrder.setPaymentMethod(order.getPaymentMethod());
+            itemOrder.setReceiver_name(name);
+            itemOrder.setReceiver_phone(phone);
+            itemOrder.setShipping_address(address);
+            itemOrder.setVoucher_code(productVoucher);
+
+            OrderDetails od = new OrderDetails();
+            od.setPid(c.getPid());
+            od.setQuantity(c.getQuantity());
+            od.setPrice(p.getPrice());
+            List<OrderDetails> singleDetails = new ArrayList<>();
+            singleDetails.add(od);
+
+            OrderShipment itemShipment = new OrderShipment();
+            itemShipment.setUsername(username);
+            itemShipment.setReceiver_name(name);
+            itemShipment.setReceiver_phone(phone);
+            itemShipment.setShipping_address(address);
+            itemShipment.setStatus(0);
+            itemShipment.setCreatedDate(new java.sql.Timestamp(System.currentTimeMillis()));
+
+            int orderId = dao.insertOrderWithDetails(itemOrder, singleDetails, itemShipment);
+            if (orderId > 0) {
+                haveOrderCreated = true;
+                dao.removeCartItem(username, c.getPid());
+                purchasedPids.add(c.getPid());
+            }
+        }
+
+        if (!haveOrderCreated) {
+            response.sendRedirect("cart");
+            return;
         }
 
         // =========================
         // 🔥 XÓA USER VOUCHER ĐÃ DÙNG
         // =========================
-        if (purchasedPids.size() > 0) {
+        if (!purchasedPids.isEmpty()) {
             for (String pid : purchasedPids) {
                 dao.deleteUserVoucher(username, pid);
                 if (voucherMap != null) {

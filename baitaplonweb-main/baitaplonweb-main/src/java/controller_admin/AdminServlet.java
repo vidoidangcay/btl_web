@@ -480,6 +480,14 @@ public class AdminServlet extends HttpServlet {
                     }
                     break;
                 }
+                case "deleteOrder": {
+                    String orderId = request.getParameter("orderId");
+                    if (orderId != null) {
+                        dao.deleteOrderById(Integer.parseInt(orderId));
+                        redirectAlert = "Đã xóa đơn hàng và hoàn lại sản phẩm liên quan.";
+                    }
+                    break;
+                }
                 default: {
                     break;
                 }
