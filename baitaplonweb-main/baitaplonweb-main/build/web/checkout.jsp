@@ -231,6 +231,10 @@ textarea {
         </c:when>
         <c:otherwise>
             <form action="checkout" method="post">
+                <c:if test="${not empty param.pid}">
+                    <input type="hidden" name="pid" value="${param.pid}" />
+                    <input type="hidden" name="quantity" value="${quantity}" />
+                </c:if>
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label" for="name">Tên người nhận</label>

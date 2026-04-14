@@ -206,7 +206,10 @@ protected void doGet(HttpServletRequest request, HttpServletResponse response)
                 request.setAttribute("quantity", quantity);
             }
         } else {
-            List<Cart> cartList = dao.getCartByUser(username);
+            List<Cart> cartList = (List<Cart>) session.getAttribute("checkoutList");
+            if (cartList == null || cartList.isEmpty()) {
+                cartList = dao.getCartByUser(username);
+            }
             if (cartList != null) {
                 for (Cart c : cartList) {
                     Products p = dao.getProductById(c.getPid());
